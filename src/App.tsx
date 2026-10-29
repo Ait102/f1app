@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { HashRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { ErrorBox, Loading } from './components/DataState';
@@ -44,7 +44,13 @@ function NotFound() {
 /** Move focus to the main area on navigation for keyboard and screen-reader users. */
 function FocusOnNavigate() {
   const { pathname } = useLocation();
+  const first = useRef(true);
   useEffect(() => {
+    // Leave initial focus alone so the skip link stays the first Tab stop.
+    if (first.current) {
+      first.current = false;
+      return;
+    }
     window.scrollTo(0, 0);
     document.getElementById('main')?.focus({ preventScroll: true });
   }, [pathname]);

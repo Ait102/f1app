@@ -49,14 +49,33 @@ export function AboutPage() {
         всплывающей подсказке при наведении. Если источник публикует только дату, время не показывается.
       </p>
 
-      <h2>Условия использования</h2>
-      <p>
-        Перед публичным размещением проверьте актуальные{' '}
-        <a href="https://github.com/jolpica/jolpica-f1/blob/main/docs/rate_limits.md" target="_blank" rel="noreferrer">
-          лимиты
-        </a>{' '}
-        и условия Jolpica-F1. Formula 1, F1 и связанные знаки принадлежат Formula One Licensing B.V.; проект с ними не связан.
-      </p>
+      <h2>Лицензия и условия</h2>
+      <ul>
+        <li>
+          Данные Jolpica-F1 распространяются по лицензии{' '}
+          <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ru" target="_blank" rel="noreferrer">
+            CC BY-NC-SA 4.0
+          </a>
+          : с указанием источника, только в некоммерческих целях, производные данные — на тех же условиях.
+        </li>
+        <li>
+          Проект некоммерческий и соблюдает{' '}
+          <a href="https://github.com/jolpica/jolpica-f1/blob/main/TERMS.md" target="_blank" rel="noreferrer">
+            условия использования
+          </a>{' '}
+          и{' '}
+          <a href="https://github.com/jolpica/jolpica-f1/blob/main/docs/rate_limits.md" target="_blank" rel="noreferrer">
+            лимиты
+          </a>{' '}
+          Jolpica-F1 (без токена: 4 запроса в секунду, 500 в час). Для коммерческого использования нужно отдельное согласование с
+          владельцами API.
+        </li>
+        <li>
+          Jolpica-F1 поддерживается волонтёрами и не гарантирует доступность и точность данных. Официальные результаты —
+          на <a href="https://www.formula1.com/" target="_blank" rel="noreferrer">formula1.com</a>.
+        </li>
+        <li>Formula 1, F1 и связанные знаки принадлежат Formula One Licensing B.V.; проект с ними не связан.</li>
+      </ul>
     </section>
   );
 }

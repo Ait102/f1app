@@ -64,7 +64,15 @@ export function Layout() {
 
   return (
     <div className="app">
-      <a className="skip-link" href="#main">
+      <a
+        className="skip-link"
+        href="#main"
+        onClick={(e) => {
+          // A plain #main would be treated as a route by HashRouter.
+          e.preventDefault();
+          document.getElementById('main')?.focus();
+        }}
+      >
         Перейти к содержимому
       </a>
       <header className="header">
@@ -93,7 +101,9 @@ export function Layout() {
         <div className="container footer__inner">
           <p>
             Данные: <a href="https://github.com/jolpica/jolpica-f1" target="_blank" rel="noreferrer">Jolpica-F1</a>{' '}
-            (открытый API, совместимый с Ergast). Неофициальный проект, не связан с Formula 1.
+            (открытый API, совместимый с Ergast), лицензия{' '}
+            <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ru" target="_blank" rel="noreferrer">CC BY-NC-SA 4.0</a>.
+            Некоммерческий неофициальный проект, не связан с Formula 1.
           </p>
           <p>
             Время показано в зоне <strong>{tz}</strong> ({utcOffsetLabel(tz)}). Наведите на время, чтобы увидеть UTC.

@@ -9,10 +9,23 @@
 npm install
 npm run dev      # http://localhost:5173
 npm test         # Vitest + Testing Library
+npm run test:e2e # Playwright (первый раз: npx playwright install chromium)
 npm run build    # production-сборка в dist/
 ```
 
-Сборка статическая (HashRouter, `base: './'`), её можно выложить на любой хостинг: GitHub Pages, Netlify, Vercel.
+Сборка статическая (HashRouter, `base: './'`), её можно выложить на любой хостинг.
+
+## Публикация на GitHub Pages
+
+Workflow `.github/workflows/deploy.yml` при каждом пуше в `main` прогоняет тесты, собирает проект и публикует сайт.
+Один раз включите: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+Сайт будет доступен по адресу `https://<user>.github.io/f1app/`.
+
+Отчёт о тестировании и сверке с официальными данными — [docs/TESTING.md](docs/TESTING.md).
+
+## Лицензия данных
+
+Данные Jolpica-F1 распространяются по [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/): только некоммерческое использование и обязательное указание источника. Лимиты без токена: 4 запроса/с, 500 запросов/ч.
 
 ## Страницы
 
@@ -49,4 +62,4 @@ src/
 
 ## Что дальше (backlog P1–P2)
 
-Профили пилотов, команд и трасс; график борьбы за чемпионство; избранное в localStorage; Playwright-тесты.
+Профили пилотов, команд и трасс; график борьбы за чемпионство; избранное в localStorage.

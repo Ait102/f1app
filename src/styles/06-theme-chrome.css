@@ -30,9 +30,10 @@
   font-size: 0.95rem;
   font-weight: 900;
   letter-spacing: 0.02em;
-  padding: 3px 9px;
-  border-radius: 5px;
-  transform: skewX(-10deg);
+  font-style: normal;
+  padding: 3px 8px;
+  border-radius: 8px;
+  transform: none;
   box-shadow: 0 6px 18px -10px rgba(225, 6, 0, 0.95);
 }
 

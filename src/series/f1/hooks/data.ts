@@ -84,7 +84,7 @@ export function useCircuitWinners(id: string) {
   return useResource(`cwin:${id}`, (force) => jolpica.getCircuitWinners(id, { force }));
 }
 
-const SEASON_KEY = 'f1hub:lastSeason';
+const SEASON_KEY = 'racinghub:f1:lastSeason';
 
 export function rememberSeason(season: number): void {
   try {

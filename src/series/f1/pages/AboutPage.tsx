@@ -6,7 +6,7 @@ import { PageHeader } from './common';
 
 export function AboutPage() {
   useEffect(() => {
-    document.title = 'F1 Season Hub · Источники';
+    document.title = 'Racing Hub · F1 · Источники';
   }, []);
   const tz = localTimeZone();
   return (
@@ -124,7 +124,9 @@ export function AboutPage() {
           с указанием источника. Длина, число поворотов и направление движения — оттуда же.
         </li>
         <li>
-          Formula 1, F1 и связанные знаки принадлежат Formula One Licensing B.V.; проект с ними не связан.
+          Formula 1, F1 и связанные знаки принадлежат Formula One Licensing B.V.; FIA, WEC и связанные знаки —
+          их правообладателям (FIA, ACO). Racing Hub с ними не связан, названия используются только чтобы
+          обозначить чемпионат.
         </li>
       </ul>
     </section>

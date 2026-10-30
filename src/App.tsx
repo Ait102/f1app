@@ -3,6 +3,7 @@ import { HashRouter, Link, Navigate, Route, Routes, useLocation } from 'react-ro
 
 import { ErrorBox, Loading } from './components/DataState';
 import { Layout } from './components/Layout';
+import { ChoosePage } from './pages/ChoosePage';
 import { rememberedSeason, useSeasons } from './series/f1/hooks/data';
 import { AboutPage } from './series/f1/pages/AboutPage';
 import { CalendarPage } from './series/f1/pages/CalendarPage';
@@ -14,8 +15,10 @@ import { DriverPage } from './series/f1/pages/DriverPage';
 import { DriversPage } from './series/f1/pages/DriversPage';
 import { HomePage } from './series/f1/pages/HomePage';
 import { RacePage } from './series/f1/pages/RacePage';
+import { WecHomePage } from './series/wec/pages/WecHomePage';
 
-function RootRedirect() {
+/** /f1 → the remembered or latest F1 season. */
+function F1Entry() {
   const seasons = useSeasons();
   if (seasons.status === 'loading') return <Loading rows={3} label="Загружаем список сезонов…" />;
   if (seasons.status === 'error') {
@@ -70,7 +73,9 @@ export function App() {
       <FocusOnNavigate />
       <Routes>
         <Route element={<Layout />}>
-          <Route index element={<RootRedirect />} />
+          <Route index element={<ChoosePage />} />
+          <Route path="f1" element={<F1Entry />} />
+          <Route path="wec" element={<WecHomePage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path=":season">
             <Route index element={<HomePage />} />

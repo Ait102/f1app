@@ -1,0 +1,153 @@
+/* Series: start page (F1 / WEC), header switch, WEC placeholder. */
+
+.choose__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 720px) {
+  .choose__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.series-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 240px;
+  padding: 28px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.series-card:hover {
+  transform: translateY(-3px);
+  color: var(--text);
+}
+
+.series-card--f1 {
+  background: linear-gradient(135deg, rgba(225, 6, 0, 0.22), transparent 60%), var(--surface);
+}
+
+.series-card--f1:hover {
+  border-color: rgba(225, 6, 0, 0.6);
+}
+
+.series-card--wec {
+  background: linear-gradient(135deg, rgba(90, 176, 255, 0.18), transparent 60%), var(--surface);
+}
+
+.series-card--wec:hover {
+  border-color: rgba(90, 176, 255, 0.6);
+}
+
+.series-card__mark {
+  position: absolute;
+  right: 16px;
+  bottom: -14px;
+  font-size: 6rem;
+  font-weight: 900;
+  font-style: italic;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+}
+
+.series-card__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.series-card__text {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--muted);
+}
+
+.series-card__cta {
+  margin-top: auto;
+  font-weight: 700;
+  color: var(--accent-text);
+}
+
+.series-card--wec .series-card__cta {
+  color: var(--c-upcoming);
+}
+
+/* Header switch F1 / WEC */
+.series-switch {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.series-switch__item {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.series-switch__item:hover {
+  color: var(--text);
+}
+
+.series-switch__item.is-active {
+  color: #fff;
+  background: var(--accent);
+}
+
+.series-switch__item.is-active[href='#/wec'] {
+  background: #1f6fc4;
+}
+
+/* WEC placeholder */
+.wec-plan {
+  margin-top: 16px;
+}
+
+.wec-plan__list {
+  margin: 0;
+  padding-left: 1.2em;
+  color: var(--muted);
+}
+
+.wec-plan__list li {
+  margin-bottom: 6px;
+}
+
+/* Up to mid-size screens: make room for the series switch (menu not hidden in a scroll, one header row on phones). */
+@media (max-width: 1180px) {
+  .logo__text,
+  .season-select__label {
+    display: none;
+  }
+
+  .header__inner {
+    gap: 12px;
+  }
+
+  .nav__link {
+    padding-inline: 9px;
+  }
+}

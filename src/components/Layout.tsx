@@ -45,24 +45,61 @@ function SeasonSelect({ season }: { season: number | null }) {
   );
 }
 
+type Series = 'f1' | 'wec' | null;
+
+function seriesOf(pathname: string): Series {
+  if (pathname === '/') return null;
+  if (pathname === '/wec' || pathname.startsWith('/wec/')) return 'wec';
+  return 'f1';
+}
+
+function SeriesSwitch({ series, f1Home }: { series: Series; f1Home: string }) {
+  const items: Array<[Exclude<Series, null>, string, string]> = [
+    ['f1', 'F1', f1Home],
+    ['wec', 'WEC', '/wec'],
+  ];
+  return (
+    <nav className="series-switch" aria-label="Чемпионат">
+      {items.map(([id, label, to]) => (
+        <Link
+          key={id}
+          to={to}
+          className={`series-switch__item${series === id ? ' is-active' : ''}`}
+          aria-current={series === id ? 'page' : undefined}
+        >
+          {label}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
 export function Layout() {
   const season = useSeasonParam();
   const navSeason = season ?? rememberedSeason();
+  const { pathname } = useLocation();
+  const series = seriesOf(pathname);
 
   useEffect(() => {
     if (season !== null) rememberSeason(season);
   }, [season]);
 
   const tz = localTimeZone();
-  const links: Array<[string, string]> = navSeason
-    ? [
-        [`/${navSeason}`, 'Главная'],
-        [`/${navSeason}/calendar`, 'Календарь'],
-        [`/${navSeason}/drivers`, 'Пилоты'],
-        [`/${navSeason}/constructors`, 'Конструкторы'],
-        [`/${navSeason}/chart`, 'График'],
-      ]
-    : [];
+  const links: Array<[string, string]> =
+    series === 'f1' && navSeason
+      ? [
+          [`/${navSeason}`, 'Главная'],
+          [`/${navSeason}/calendar`, 'Календарь'],
+          [`/${navSeason}/drivers`, 'Пилоты'],
+          [`/${navSeason}/constructors`, 'Конструкторы'],
+          [`/${navSeason}/chart`, 'График'],
+          ['/about', 'Источники'],
+        ]
+      : series === 'f1'
+        ? [['/about', 'Источники']]
+        : series === 'wec'
+          ? [['/wec', 'Обзор']]
+          : [];
 
   return (
     <div className="app">
@@ -79,15 +116,11 @@ export function Layout() {
       </a>
       <header className="header">
         <div className="container header__inner">
-          <Link
-            to={navSeason ? `/${navSeason}` : '/'}
-            className="logo"
-            aria-label="F1 Season Hub — на главную"
-          >
+          <Link to="/" className="logo" aria-label="Racing Hub — выбор чемпионата">
             <span className="logo__mark" aria-hidden="true">
-              F1
+              RH
             </span>
-            <span className="logo__text">Season Hub</span>
+            <span className="logo__text">Racing Hub</span>
           </Link>
           <nav className="nav" aria-label="Основная навигация">
             {links.map(([to, label]) => (
@@ -95,11 +128,9 @@ export function Layout() {
                 {label}
               </NavLink>
             ))}
-            <NavLink to="/about" className="nav__link">
-              Источники
-            </NavLink>
           </nav>
-          <SeasonSelect season={season} />
+          <SeriesSwitch series={series} f1Home={navSeason ? `/${navSeason}` : '/f1'} />
+          {series === 'f1' && <SeasonSelect season={season} />}
         </div>
       </header>
       <main id="main" className="container main" tabIndex={-1}>
@@ -120,7 +151,7 @@ export function Layout() {
             >
               CC BY-NC-SA 4.0
             </a>
-            . Некоммерческий неофициальный проект, не связан с Formula 1.
+            . Некоммерческий неофициальный проект, не связан с Formula 1, FIA и WEC.
           </p>
           <p>
             Время показано в зоне <strong>{tz}</strong> ({utcOffsetLabel(tz)}). Наведите на время, чтобы

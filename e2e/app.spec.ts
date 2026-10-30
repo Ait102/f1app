@@ -2,9 +2,12 @@ import { expect, test } from '@playwright/test';
 
 import { mockApi } from './fixtures';
 
-test('opens the latest season with next race and leaders', async ({ page }) => {
+test('start page offers F1 and WEC; F1 opens the latest season', async ({ page }) => {
   await mockApi(page);
   await page.goto('./');
+  await expect(page.getByRole('heading', { level: 1, name: 'Что смотрим?' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /World Endurance Championship/ })).toBeVisible();
+  await page.getByRole('link', { name: /Formula 1/ }).click();
   await expect(page).toHaveURL(/#\/2026$/);
   await expect(page.getByRole('heading', { level: 1, name: 'Сезон 2026' })).toBeVisible();
   await expect(page.getByText('Завершено этапов: 1 из 3')).toBeVisible();
@@ -80,6 +83,8 @@ test('mobile layout has no horizontal scroll', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await mockApi(page);
   for (const path of [
+    './',
+    './#/wec',
     './#/2026',
     './#/2026/calendar',
     './#/2026/race/1',
@@ -201,4 +206,29 @@ test('favourite from profile shows on home and highlights rows', async ({ page }
   // Survives reload.
   await page.reload();
   await expect(page.locator('tr.row--fav')).toHaveCount(1);
+});
+
+test('WEC section is a placeholder without made-up data', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./');
+  await page.getByRole('link', { name: /World Endurance Championship/ }).click();
+  await expect(page).toHaveURL(/#\/wec$/);
+  await expect(page.getByRole('heading', { level: 1, name: /WEC/ })).toBeVisible();
+  await expect(page.getByText('Раздел в разработке.')).toBeVisible();
+  // No F1 season picker or tables in the WEC section.
+  await expect(page.getByLabel('Сезон')).toHaveCount(0);
+  await expect(page.locator('table')).toHaveCount(0);
+});
+
+test('header switch moves between F1 and WEC', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./#/2026/drivers');
+  const sw = page.getByRole('navigation', { name: 'Чемпионат' });
+  await expect(sw.getByRole('link', { name: 'F1' })).toHaveAttribute('aria-current', 'page');
+  await sw.getByRole('link', { name: 'WEC' }).click();
+  await expect(page).toHaveURL(/#\/wec$/);
+  await expect(sw.getByRole('link', { name: 'WEC' })).toHaveAttribute('aria-current', 'page');
+  // Back to F1 keeps the season the user was looking at.
+  await sw.getByRole('link', { name: 'F1' }).click();
+  await expect(page).toHaveURL(/#\/2026$/);
 });

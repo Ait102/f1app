@@ -70,7 +70,7 @@ export interface GetOptions {
   force?: boolean;
 }
 
-const STORAGE_PREFIX = 'f1hub:v1:';
+const STORAGE_PREFIX = 'racinghub:v1:';
 
 function defaultStorage(): Storage | null {
   try {

@@ -5,6 +5,8 @@ import { mockApi } from './fixtures';
 // Opt-in: `npm run test:visual` (see playwright.visual.config.ts).
 
 const ROUTES = [
+  './',
+  './#/wec',
   './#/2026',
   './#/2026/calendar',
   './#/2026/race/1',

@@ -8,7 +8,7 @@ export function SeasonGuard({ children }: { children: (season: number) => ReactN
   const season = useSeasonParam();
   const seasons = useSeasons();
   useEffect(() => {
-    if (season) document.title = `F1 Season Hub · ${season}`;
+    if (season) document.title = `Racing Hub · F1 ${season}`;
   }, [season]);
 
   if (season === null) {

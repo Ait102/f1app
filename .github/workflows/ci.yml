@@ -1,7 +1,8 @@
-name: Tests and build
+name: Tests, build and deploy
 
-# Runs on every push and pull request. Publishing is off for now;
-# to deploy later, see "Публикация" in README.md.
+# Every push and pull request: lint, tests, build.
+# Pushes to main also publish the site to GitHub Pages — only when the
+# repository is public (Pages is free for public repositories only).
 on:
   push:
     branches: [main]
@@ -29,3 +30,25 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && !github.event.repository.private
+        with:
+          path: dist
+
+  deploy:
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && !github.event.repository.private
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

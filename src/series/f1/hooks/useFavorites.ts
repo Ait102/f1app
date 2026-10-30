@@ -7,8 +7,8 @@ export interface Favorites {
   constructors: string[];
 }
 
-const KEY = 'f1hub:favorites';
-const EVENT = 'f1hub:favorites-change';
+const KEY = 'racinghub:f1:favorites';
+const EVENT = 'racinghub:f1:favorites-change';
 const EMPTY: Favorites = { drivers: [], constructors: [] };
 
 let cachedRaw: string | null | undefined;

@@ -9,15 +9,15 @@ beforeEach(() => localStorage.clear());
 describe('favorites', () => {
   it('toggles and persists in localStorage', () => {
     toggleFavorite('drivers', 'hamilton');
-    expect(JSON.parse(localStorage.getItem('f1hub:favorites')!).drivers).toEqual(['hamilton']);
+    expect(JSON.parse(localStorage.getItem('racinghub:f1:favorites')!).drivers).toEqual(['hamilton']);
     toggleFavorite('drivers', 'hamilton');
     expect(readFavorites().drivers).toEqual([]);
   });
 
   it('ignores corrupted or unsafe stored values', () => {
-    localStorage.setItem('f1hub:favorites', '{bad json');
+    localStorage.setItem('racinghub:f1:favorites', '{bad json');
     expect(readFavorites()).toEqual({ drivers: [], constructors: [] });
-    localStorage.setItem('f1hub:favorites', JSON.stringify({ drivers: ['ok_id', '../x', 5] }));
+    localStorage.setItem('racinghub:f1:favorites', JSON.stringify({ drivers: ['ok_id', '../x', 5] }));
     expect(readFavorites().drivers).toEqual(['ok_id']);
   });
 

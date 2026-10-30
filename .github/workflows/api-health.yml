@@ -1,0 +1,38 @@
+name: API health check
+
+# Weekly check that the Jolpica-F1 API still works and still matches our parsers.
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test:contract
+
+      - name: Open an issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="API Jolpica: проверка не прошла"
+          existing=$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number')
+          body=$(printf 'Еженедельная проверка API упала.\n\nЛог: %s\n\nЧто делать — см. docs/MAINTENANCE.md.' "$RUN_URL")
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi

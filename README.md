@@ -1,5 +1,8 @@
 # F1 Season Hub
 
+[![Tests and deploy](https://github.com/Ait102/f1app/actions/workflows/deploy.yml/badge.svg)](https://github.com/Ait102/f1app/actions/workflows/deploy.yml)
+[![API health](https://github.com/Ait102/f1app/actions/workflows/api-health.yml/badge.svg)](https://github.com/Ait102/f1app/actions/workflows/api-health.yml)
+
 Веб-приложение с календарём, результатами и зачётами Formula 1 (MVP по ТЗ v0.2).
 Данные — открытый API [Jolpica-F1](https://github.com/jolpica/jolpica-f1) (Ergast-совместимый, без ключа, CORS открыт), поэтому бэкенд не нужен.
 
@@ -11,7 +14,10 @@ npm run dev      # http://localhost:5173
 npm test         # Vitest + Testing Library
 npm run test:e2e # Playwright (первый раз: npx playwright install chromium)
 npm run build    # production-сборка в dist/
+npm run test:contract  # проверка живого API Jolpica (формат и доступность)
 ```
+
+Поддержка проекта (еженедельная проверка API, лимиты, обновления) — [docs/MAINTENANCE.md](docs/MAINTENANCE.md).
 
 Сборка статическая (HashRouter, `base: './'`), её можно выложить на любой хостинг.
 

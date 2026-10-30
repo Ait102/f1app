@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
-import { DriverCell, Moment, SearchBox, StatusBadge, TeamCell, matchesDriver } from '../components/bits';
+import { CircuitLink, DriverCell, Moment, SearchBox, StatusBadge, TeamCell, matchesDriver } from '../components/bits';
 import { SortableTable, type Column } from '../components/SortableTable';
 import { formatPoints } from '../domain/format';
 import { raceStatus, type RaceStatus } from '../domain/status';
@@ -53,7 +53,12 @@ function Race({ season }: { season: number }) {
       <PageHeader eyebrow={`Сезон ${season} · Этап ${race.round}`} title={race.name}>
         <p className="lead">
           <StatusBadge status={status} />{' '}
-          {[race.circuitName, race.locality, race.country].filter(Boolean).join(' · ') || 'Трасса не указана'}
+          {race.circuitName ? (
+            <CircuitLink season={season} id={race.circuitId} name={race.circuitName} />
+          ) : (
+            !race.locality && !race.country && 'Трасса не указана'
+          )}
+          {[race.circuitName ? '' : null, race.locality, race.country].filter((x) => x !== null).join(' · ')}
         </p>
         {race.url && (
           <p>

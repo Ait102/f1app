@@ -78,7 +78,7 @@ test('network failure keeps the UI working', async ({ page }) => {
 test('mobile layout has no horizontal scroll', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await mockApi(page);
-  for (const path of ['./#/2026', './#/2026/calendar', './#/2026/race/1', './#/2026/drivers']) {
+  for (const path of ['./#/2026', './#/2026/calendar', './#/2026/race/1', './#/2026/drivers', './#/2026/driver/russell', './#/2026/constructor/mercedes', './#/2026/circuit/c1']) {
     await page.goto(path);
     await expect(page.locator('main h1')).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -108,4 +108,43 @@ test('Retry-After is shown when the server exposes it', async ({ page }) => {
   );
   await page.goto('./#/2026/drivers');
   await expect(page.getByRole('alert')).toContainText('3 с');
+});
+
+test('driver profile from standings', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./#/2026/drivers');
+  await page.getByRole('link', { name: /Russell/ }).click();
+  await expect(page).toHaveURL(/#\/2026\/driver\/russell$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'George Russell' })).toBeVisible();
+  await expect(page.getByText('Гонки (с учётом сходов)')).toBeVisible();
+  await expect(page.locator('.stat', { hasText: 'Победы' }).last()).toContainText('8');
+  await expect(page.locator('table tbody tr')).toHaveCount(1);
+
+  // Season switch keeps the profile.
+  await page.getByLabel('Сезон').selectOption('2025');
+  await expect(page).toHaveURL(/#\/2025\/driver\/russell$/);
+});
+
+test('constructor profile lists its drivers', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./#/2026/constructors');
+  await page.locator('table').getByRole('link', { name: 'Mercedes' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Mercedes' })).toBeVisible();
+  await expect(page.locator('.chip-card')).toHaveCount(2);
+  await expect(page.getByRole('columnheader', { name: 'RUS' })).toBeVisible();
+});
+
+test('circuit profile from race page shows winners', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./#/2026/race/1');
+  await page.getByRole('link', { name: 'Australian Grand Prix Circuit' }).click();
+  await expect(page).toHaveURL(/#\/2026\/circuit\/c1$/);
+  await expect(page.getByRole('link', { name: 'На карте ↗' })).toHaveAttribute('href', /openstreetmap/);
+  await expect(page.locator('table tbody tr')).toHaveCount(2);
+});
+
+test('unknown driver shows a not-found message', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./#/2026/driver/nobody');
+  await expect(page.getByRole('heading', { name: 'Пилот не найден' })).toBeVisible();
 });

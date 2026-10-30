@@ -101,6 +101,31 @@ export interface Standings<T> {
   rows: T[];
 }
 
+export interface DriverProfile extends Driver {
+  dateOfBirth: string | null;
+}
+
+export interface Circuit {
+  id: string;
+  name: string;
+  locality: string | null;
+  country: string | null;
+  lat: number | null;
+  long: number | null;
+  url: string | null;
+}
+
+export interface RaceWithResults {
+  race: RaceEvent;
+  results: RaceResult[];
+}
+
+/** Career totals read from the source's row counts, never computed by us. */
+export interface CareerCounts {
+  wins: number | null;
+  starts: number | null;
+}
+
 export interface DataMeta {
   provider: string;
   sourceUrl: string;

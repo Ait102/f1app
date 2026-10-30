@@ -45,6 +45,38 @@ export function useSprint(season: number | null, round: number | null) {
   );
 }
 
+export function useDriver(id: string) {
+  return useResource(`driver:${id}`, (force) => jolpica.getDriver(id, { force }));
+}
+
+export function useDriverSeasonResults(season: number, id: string) {
+  return useResource(`dres:${season}:${id}`, (force) => jolpica.getDriverSeasonResults(season, id, { force }));
+}
+
+export function useDriverCareer(id: string) {
+  return useResource(`dcar:${id}`, (force) => jolpica.getDriverCareer(id, { force }));
+}
+
+export function useConstructor(id: string) {
+  return useResource(`team:${id}`, (force) => jolpica.getConstructor(id, { force }));
+}
+
+export function useConstructorSeason(season: number, id: string) {
+  return useResource(`tseason:${season}:${id}`, (force) => jolpica.getConstructorSeason(season, id, { force }));
+}
+
+export function useConstructorWins(id: string) {
+  return useResource(`twins:${id}`, (force) => jolpica.getConstructorWins(id, { force }));
+}
+
+export function useCircuit(id: string) {
+  return useResource(`circuit:${id}`, (force) => jolpica.getCircuit(id, { force }));
+}
+
+export function useCircuitWinners(id: string) {
+  return useResource(`cwin:${id}`, (force) => jolpica.getCircuitWinners(id, { force }));
+}
+
 const SEASON_KEY = 'f1hub:lastSeason';
 
 export function rememberSeason(season: number): void {

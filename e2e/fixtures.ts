@@ -82,6 +82,51 @@ function respond(path: string): object | null {
   if ((m = path.match(/^\/(\d{4})\/(\d+)\/(qualifying|sprint)\/$/))) {
     return mr(0, { RaceTable: { Races: [] } });
   }
+
+  // Profiles
+  const allDrivers = [RUS, ANT, VER];
+  const allTeams = [MER, RBR];
+  const r1 = races[2026][0];
+  if ((m = path.match(/^\/drivers\/(\w+)\/$/))) {
+    const d = allDrivers.find((x) => x.driverId === m![1]);
+    return mr(d ? 1 : 0, { DriverTable: { Drivers: d ? [{ ...d, permanentNumber: '63', dateOfBirth: '1998-02-15' }] : [] } });
+  }
+  if ((m = path.match(/^\/drivers\/(\w+)\/results\/1\/$/))) return mr(m[1] === 'russell' ? 8 : 0, {});
+  if ((m = path.match(/^\/drivers\/(\w+)\/results\/$/))) return mr(170, {});
+  if ((m = path.match(/^\/(\d{4})\/drivers\/(\w+)\/results\/$/))) {
+    const own = results.filter((x) => x.Driver.driverId === m![2]);
+    return mr(own.length, { RaceTable: { Races: own.length ? [{ ...r1, Results: own }] : [] } });
+  }
+  if ((m = path.match(/^\/constructors\/(\w+)\/$/))) {
+    const t = allTeams.find((x) => x.constructorId === m![1]);
+    return mr(t ? 1 : 0, { ConstructorTable: { Constructors: t ? [t] : [] } });
+  }
+  if ((m = path.match(/^\/constructors\/(\w+)\/results\/1\/$/))) return mr(143, {});
+  if ((m = path.match(/^\/(\d{4})\/constructors\/(\w+)\/drivers\/$/))) {
+    const ds = results.filter((x) => x.Constructor.constructorId === m![2]).map((x) => x.Driver);
+    return mr(ds.length, { DriverTable: { Drivers: ds } });
+  }
+  if ((m = path.match(/^\/(\d{4})\/constructors\/(\w+)\/results\/$/))) {
+    const own = results.filter((x) => x.Constructor.constructorId === m![2]);
+    return mr(own.length, { RaceTable: { Races: [{ ...r1, Results: own }] } });
+  }
+  if ((m = path.match(/^\/circuits\/(\w+)\/$/))) {
+    return mr(1, {
+      CircuitTable: {
+        Circuits: [{ circuitId: m[1], circuitName: 'Australian Grand Prix Circuit', Location: { lat: '-37.8', long: '144.9', locality: 'City', country: 'Country' } }],
+      },
+    });
+  }
+  if ((m = path.match(/^\/circuits\/(\w+)\/results\/1\/$/))) {
+    return mr(2, {
+      RaceTable: {
+        Races: [
+          { ...races[2025][0], Results: [{ position: '1', points: '25', Driver: VER, Constructor: RBR }] },
+          { ...r1, Results: [results[0]] },
+        ],
+      },
+    });
+  }
   return null;
 }
 

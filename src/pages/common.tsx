@@ -46,6 +46,19 @@ export function SeasonGuard({ children }: { children: (season: number) => ReactN
   return <>{children(season)}</>;
 }
 
+export const ID_RE = /^[a-z0-9_]+$/i;
+
+export function NotFoundBlock({ title, season }: { title: string; season: number }) {
+  return (
+    <section className="page">
+      <h1>{title}</h1>
+      <p>
+        Источник данных не знает такой записи. <Link to={`/${season}`}>На главную сезона {season}</Link>
+      </p>
+    </section>
+  );
+}
+
 export function PageHeader({ eyebrow, title, children }: { eyebrow?: string; title: string; children?: ReactNode }) {
   return (
     <header className="page-header">

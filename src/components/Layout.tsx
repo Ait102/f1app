@@ -9,9 +9,9 @@ function SeasonSelect({ season }: { season: number | null }) {
   const location = useLocation();
 
   function onChange(next: string) {
-    // Keep the same section; a race page jumps to the new season's calendar.
+    // Keep the same section (and profile); a race page jumps to the new season's calendar.
     const rest = location.pathname.split('/').slice(2);
-    const section = rest[0] === 'race' ? 'calendar' : rest[0] ?? '';
+    const section = rest[0] === 'race' ? 'calendar' : rest.join('/');
     navigate(`/${next}${section ? '/' + section : ''}`);
   }
 

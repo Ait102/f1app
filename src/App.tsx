@@ -9,6 +9,9 @@ import { RacePage } from './pages/RacePage';
 import { DriversPage } from './pages/DriversPage';
 import { ConstructorsPage } from './pages/ConstructorsPage';
 import { AboutPage } from './pages/AboutPage';
+import { DriverPage } from './pages/DriverPage';
+import { ConstructorPage } from './pages/ConstructorPage';
+import { CircuitPage } from './pages/CircuitPage';
 
 function RootRedirect() {
   const seasons = useSeasons();
@@ -71,6 +74,9 @@ export function App() {
             <Route path="race/:round" element={<RacePage />} />
             <Route path="drivers" element={<DriversPage />} />
             <Route path="constructors" element={<ConstructorsPage />} />
+            <Route path="driver/:driverId" element={<DriverPage />} />
+            <Route path="constructor/:constructorId" element={<ConstructorPage />} />
+            <Route path="circuit/:circuitId" element={<CircuitPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Route>

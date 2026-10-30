@@ -139,3 +139,19 @@ describe('pagination', () => {
     await expect(createJolpica(client).getRaces(20 as number)).rejects.toThrow(/Invalid season/);
   });
 });
+
+describe('profile endpoints', () => {
+  it('reads career counts from list totals', async () => {
+    const f = vi.fn(async (url: RequestInfo | URL) =>
+      ok({ MRData: { total: String(url).includes('/results/1/') ? '8' : '170' } }),
+    ) as unknown as typeof fetch;
+    const { client } = setup(f);
+    const res = await createJolpica(client).getDriverCareer('russell');
+    expect(res.data).toEqual({ wins: 8, starts: 170 });
+  });
+
+  it('rejects unsafe ids', async () => {
+    const { client } = setup(vi.fn());
+    await expect(createJolpica(client).getDriver('../x')).rejects.toThrow(/Invalid drivers id/);
+  });
+});

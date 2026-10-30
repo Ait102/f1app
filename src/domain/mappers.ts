@@ -1,6 +1,9 @@
 // Turns raw Jolpica (Ergast-compatible) JSON into the internal model.
 // Every accessor is defensive: unknown shapes become null, never invented data.
 import type {
+  Circuit,
+  DriverProfile,
+  RaceWithResults,
   Constructor,
   ConstructorStanding,
   Driver,
@@ -211,6 +214,54 @@ export function mapConstructorStandings(items: unknown[]): ConstructorStanding[]
     });
   }
   return out;
+}
+
+export function mapDriverProfile(v: unknown): DriverProfile | null {
+  const d = mapDriver(v);
+  return d ? { ...d, dateOfBirth: str(rec(v).dateOfBirth) } : null;
+}
+
+export function mapCircuit(v: unknown): Circuit | null {
+  const r = rec(v);
+  const id = str(r.circuitId);
+  if (!id) return null;
+  const loc = rec(r.Location);
+  return {
+    id,
+    name: str(r.circuitName) ?? id,
+    locality: str(loc.locality),
+    country: str(loc.country),
+    lat: num(loc.lat),
+    long: num(loc.long),
+    url: str(r.url),
+  };
+}
+
+/**
+ * Paged result lists split rows, not races, so one race can arrive on two
+ * pages. Joins them back by season+round, keeping source order.
+ */
+export function mergeRacesByRound(items: unknown[], resultsField = 'Results'): RaceWithResults[] {
+  const byKey = new Map<string, RaceWithResults>();
+  for (const item of items) {
+    const race = mapRace(item);
+    if (!race) continue;
+    const key = `${race.seasonYear}:${race.round}`;
+    const results = mapRaceResults(arr(rec(item)[resultsField]));
+    const existing = byKey.get(key);
+    if (existing) existing.results.push(...results);
+    else byKey.set(key, { race, results });
+  }
+  return [...byKey.values()].sort((a, b) => a.race.seasonYear - b.race.seasonYear || a.race.round - b.race.round);
+}
+
+/** Full years between birth date and `at`; null when the date is unknown. */
+export function ageAt(dateOfBirth: string | null, at: Date): number | null {
+  if (!dateOfBirth || !/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) return null;
+  const [y, m, d] = dateOfBirth.split('-').map(Number);
+  let age = at.getUTCFullYear() - y;
+  if (at.getUTCMonth() + 1 < m || (at.getUTCMonth() + 1 === m && at.getUTCDate() < d)) age--;
+  return age;
 }
 
 export function driverName(d: Driver): string {

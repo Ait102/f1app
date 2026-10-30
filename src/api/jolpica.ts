@@ -1,6 +1,11 @@
 // Jolpica-F1 endpoints mapped to the internal model.
 import {
   arr,
+  mapCircuit,
+  mapConstructor,
+  mapDriver,
+  mapDriverProfile,
+  mergeRacesByRound,
   mapConstructorStandings,
   mapDriverStandings,
   mapQualifying,
@@ -12,6 +17,12 @@ import {
   rec,
 } from '../domain/mappers';
 import type {
+  CareerCounts,
+  Circuit,
+  Constructor,
+  Driver,
+  DriverProfile,
+  RaceWithResults,
   ConstructorStanding,
   DataMeta,
   DriverStanding,
@@ -76,8 +87,75 @@ function roundPath(season: number | string, round: number | string): string {
   return `${seasonPath(season)}/${r}`;
 }
 
+export function idPath(kind: 'drivers' | 'constructors' | 'circuits', id: string): string {
+  if (!/^[a-z0-9_]+$/i.test(id)) throw new Error(`Invalid ${kind} id: ${id}`);
+  return `/${kind}/${id}`;
+}
+
+/** Reads only `total` of a list: how many rows the source has. */
+async function count(api: ApiClient, path: string, opts?: GetOptions): Promise<Fetched<number | null>> {
+  const res = await api.get(`${path}?limit=1`, opts);
+  return { data: num(rec(rec(res.data).MRData).total), meta: res.meta };
+}
+
 export function createJolpica(api: ApiClient = defaultClient) {
   return {
+    async getDriver(id: string, opts?: GetOptions): Promise<Fetched<DriverProfile | null>> {
+      const res = await api.get(`${idPath('drivers', id)}/`, opts);
+      const mr = rec(rec(res.data).MRData);
+      return { data: mapDriverProfile(arr(rec(mr.DriverTable).Drivers)[0]), meta: res.meta };
+    },
+
+    async getDriverSeasonResults(season: number, id: string, opts?: GetOptions): Promise<Fetched<RaceWithResults[]>> {
+      const res = await getPaged(api, `${seasonPath(season)}${idPath('drivers', id)}/results/`, racesOf, opts);
+      return { data: mergeRacesByRound(res.data.items), meta: res.meta };
+    },
+
+    async getDriverCareer(id: string, opts?: GetOptions): Promise<Fetched<CareerCounts>> {
+      const base = idPath('drivers', id);
+      const wins = await count(api, `${base}/results/1/`, opts);
+      const starts = await count(api, `${base}/results/`, opts);
+      return { data: { wins: wins.data, starts: starts.data }, meta: mergeMeta([wins.meta, starts.meta]) };
+    },
+
+    async getConstructor(id: string, opts?: GetOptions): Promise<Fetched<Constructor | null>> {
+      const res = await api.get(`${idPath('constructors', id)}/`, opts);
+      const mr = rec(rec(res.data).MRData);
+      return { data: mapConstructor(arr(rec(mr.ConstructorTable).Constructors)[0]), meta: res.meta };
+    },
+
+    async getConstructorSeason(
+      season: number,
+      id: string,
+      opts?: GetOptions,
+    ): Promise<Fetched<{ drivers: Driver[]; races: RaceWithResults[] }>> {
+      const base = `${seasonPath(season)}${idPath('constructors', id)}`;
+      const drivers = await getPaged(api, `${base}/drivers/`, (mr) => arr(rec(mr.DriverTable).Drivers), opts);
+      const results = await getPaged(api, `${base}/results/`, racesOf, opts);
+      return {
+        data: {
+          drivers: drivers.data.items.map(mapDriver).filter((d): d is Driver => d !== null),
+          races: mergeRacesByRound(results.data.items),
+        },
+        meta: mergeMeta([drivers.meta, results.meta]),
+      };
+    },
+
+    async getConstructorWins(id: string, opts?: GetOptions): Promise<Fetched<number | null>> {
+      return count(api, `${idPath('constructors', id)}/results/1/`, opts);
+    },
+
+    async getCircuit(id: string, opts?: GetOptions): Promise<Fetched<Circuit | null>> {
+      const res = await api.get(`${idPath('circuits', id)}/`, opts);
+      const mr = rec(rec(res.data).MRData);
+      return { data: mapCircuit(arr(rec(mr.CircuitTable).Circuits)[0]), meta: res.meta };
+    },
+
+    async getCircuitWinners(id: string, opts?: GetOptions): Promise<Fetched<RaceWithResults[]>> {
+      const res = await getPaged(api, `${idPath('circuits', id)}/results/1/`, racesOf, opts);
+      return { data: mergeRacesByRound(res.data.items), meta: res.meta };
+    },
+
     async getSeasons(opts?: GetOptions): Promise<Fetched<Season[]>> {
       const res = await getPaged(api, '/seasons/', (mr) => arr(rec(mr.SeasonTable).Seasons), opts);
       return { data: mapSeasons(res.data.items), meta: res.meta };

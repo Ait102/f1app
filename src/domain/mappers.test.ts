@@ -1,4 +1,8 @@
 import {
+  ageAt,
+  mapCircuit,
+  mapDriverProfile,
+  mergeRacesByRound,
   mapConstructorStandings,
   mapDriverStandings,
   mapRace,
@@ -104,5 +108,36 @@ describe('standings', () => {
     const [s] = mapConstructorStandings([{ position: '1', points: '10', Constructor: mercedes }]);
     expect(s.wins).toBeNull();
     expect(s.positionText).toBeNull();
+  });
+});
+
+describe('profiles', () => {
+  it('maps a circuit with coordinates', () => {
+    const c = mapCircuit({ circuitId: 'suzuka', circuitName: 'Suzuka Circuit', Location: { lat: '34.8431', long: '136.541', locality: 'Suzuka', country: 'Japan' } });
+    expect(c).toMatchObject({ id: 'suzuka', lat: 34.8431, long: 136.541, country: 'Japan' });
+    expect(mapCircuit({})).toBeNull();
+  });
+
+  it('joins one race split across pages', () => {
+    const base = { season: '2026', round: '1', raceName: 'A' };
+    const res = (id: string) => ({ position: '1', Driver: { driverId: id, familyName: id } });
+    const merged = mergeRacesByRound([
+      { ...base, Results: [res('a')] },
+      { ...base, Results: [res('b')] },
+      { season: '2026', round: '2', raceName: 'B', Results: [res('a')] },
+    ]);
+    expect(merged).toHaveLength(2);
+    expect(merged[0].results.map((r) => r.driver.id)).toEqual(['a', 'b']);
+  });
+
+  it('computes age only from a valid birth date', () => {
+    expect(ageAt('1998-02-15', new Date('2026-02-14T00:00:00Z'))).toBe(27);
+    expect(ageAt('1998-02-15', new Date('2026-02-15T00:00:00Z'))).toBe(28);
+    expect(ageAt(null, new Date())).toBeNull();
+    expect(ageAt('1998', new Date())).toBeNull();
+  });
+
+  it('maps driver profile with birth date', () => {
+    expect(mapDriverProfile({ driverId: 'x', familyName: 'X', dateOfBirth: '2000-01-01' })?.dateOfBirth).toBe('2000-01-01');
   });
 });

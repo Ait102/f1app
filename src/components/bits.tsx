@@ -1,4 +1,7 @@
+import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import type { Constructor, Driver } from '../domain/types';
+import { useSeasonParam } from '../hooks/data';
 import { driverName } from '../domain/mappers';
 import { STATUS_LABELS, type RaceStatus } from '../domain/status';
 import { formatMoment } from '../domain/format';
@@ -23,26 +26,69 @@ export function teamColor(c: Constructor | null | undefined): string {
   return (c && TEAM_COLORS[c.id]) || '#5b6070';
 }
 
-export function DriverCell({ driver, team }: { driver: Driver; team?: Constructor | null }) {
+export function DriverCell({
+  driver,
+  team,
+  season,
+}: {
+  driver: Driver;
+  team?: Constructor | null;
+  /** Profile season; defaults to the season in the URL. */
+  season?: number;
+}) {
+  const routeSeason = useSeasonParam();
+  season = season ?? routeSeason ?? undefined;
+  const name = (
+    <span className="driver__name">
+      <span className="driver__given">{driver.givenName} </span>
+      <strong>{driver.familyName}</strong>
+    </span>
+  );
   return (
     <span className="driver">
       <span className="team-bar" style={{ background: teamColor(team) }} aria-hidden="true" />
-      <span className="driver__name">
-        <span className="driver__given">{driver.givenName} </span>
-        <strong>{driver.familyName}</strong>
-      </span>
+      {season ? (
+        <Link className="profile-link" to={`/${season}/driver/${driver.id}`}>
+          {name}
+        </Link>
+      ) : (
+        name
+      )}
       {driver.code && <span className="driver__code">{driver.code}</span>}
     </span>
   );
 }
 
-export function TeamCell({ team }: { team: Constructor | null }) {
+export function TeamCell({ team, season }: { team: Constructor | null; season?: number }) {
+  const routeSeason = useSeasonParam();
+  season = season ?? routeSeason ?? undefined;
   if (!team) return <span className="muted">—</span>;
   return (
     <span className="team">
       <span className="team-dot" style={{ background: teamColor(team) }} aria-hidden="true" />
-      {team.name}
+      {season ? (
+        <Link className="profile-link" to={`/${season}/constructor/${team.id}`}>
+          {team.name}
+        </Link>
+      ) : (
+        team.name
+      )}
     </span>
+  );
+}
+
+export function CircuitLink({ season, id, name }: { season: number; id: string | null; name: string | null }) {
+  if (!name) return null;
+  return id ? <Link to={`/${season}/circuit/${id}`}>{name}</Link> : <>{name}</>;
+}
+
+/** Small "label / value" stat tile. Unknown values show as a dash. */
+export function Stat({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="stat">
+      <span className="stat__value">{value ?? '—'}</span>
+      <span className="stat__label">{label}</span>
+    </div>
   );
 }
 

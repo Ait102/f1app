@@ -1,50 +1,107 @@
-// Generates src/data/circuits/data.ts from F1DB (https://github.com/f1db/f1db, CC BY 4.0).
+// Generates src/data/circuits/{map.ts,shapes/*.ts} from F1DB (https://github.com/f1db/f1db, CC BY 4.0).
 //
-// Run once, result is committed so the app builds offline:
+// Run once, the result is committed so the app builds offline:
 //   node scripts/build-circuits.mjs
-//
-// Only the outline path (`d`) plus length / turns / direction are taken.
 
-import { writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const REPO = 'https://raw.githubusercontent.com/f1db/f1db/main';
-const OUT = resolve(dirname(fileURLToPath(import.meta.url)), '../src/data/circuits/data.ts');
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const OUT_DIR = resolve(ROOT, 'src/data/circuits');
 
-// [ Jolpica circuitId, F1DB circuit slug, F1DB layout id ]
-const MAP = [
-  ['albert_park', 'melbourne', 'melbourne-2'],
-  ['shanghai', 'shanghai', 'shanghai-1'],
-  ['suzuka', 'suzuka', 'suzuka-2'],
-  ['sepang', 'sepang', 'sepang-1'],
-  ['bahrain', 'bahrain', 'bahrain-1'],
-  ['jeddah', 'jeddah', 'jeddah-1'],
-  ['miami', 'miami', 'miami-1'],
-  ['villeneuve', 'montreal', 'montreal-6'],
-  ['monaco', 'monaco', 'monaco-6'],
-  ['catalunya', 'catalunya', 'catalunya-6'],
-  ['red_bull_ring', 'spielberg', 'spielberg-3'],
-  ['silverstone', 'silverstone', 'silverstone-8'],
-  ['spa', 'spa-francorchamps', 'spa-francorchamps-4'],
-  ['hungaroring', 'hungaroring', 'hungaroring-3'],
-  ['zandvoort', 'zandvoort', 'zandvoort-5'],
-  ['monza', 'monza', 'monza-7'],
-  ['madring', 'madring', 'madring-1'],
-  ['baku', 'baku', 'baku-1'],
-  ['marina_bay', 'marina-bay', 'marina-bay-4'],
-  ['americas', 'austin', 'austin-1'],
-  ['rodriguez', 'mexico-city', 'mexico-city-3'],
-  ['interlagos', 'interlagos', 'interlagos-2'],
-  ['vegas', 'las-vegas', 'las-vegas-1'],
-  ['lusail', 'lusail', 'lusail-1'],
-  ['yas_marina', 'yas-marina', 'yas-marina-2'],
-];
+// Jolpica circuitId -> F1DB circuit slug. Jolpica and F1DB name the same track
+// differently often enough that this table is written by hand.
+const MAP = {
+  adelaide: 'adelaide',
+  'ain-diab': 'ain-diab',
+  aintree: 'aintree',
+  albert_park: 'melbourne',
+  americas: 'austin',
+  anderstorp: 'anderstorp',
+  avus: 'avus',
+  bahrain: 'bahrain',
+  baku: 'baku',
+  boavista: 'porto',
+  brands_hatch: 'brands-hatch',
+  bremgarten: 'bremgarten',
+  buddh: 'buddh',
+  catalunya: 'catalunya',
+  charade: 'clermont-ferrand',
+  dallas: 'dallas',
+  detroit: 'detroit',
+  dijon: 'dijon',
+  donington: 'donington',
+  essarts: 'rouen',
+  estoril: 'estoril',
+  fuji: 'fuji',
+  galvez: 'buenos-aires',
+  george: 'east-london',
+  hockenheimring: 'hockenheimring',
+  hungaroring: 'hungaroring',
+  imola: 'imola',
+  indianapolis: 'indianapolis',
+  interlagos: 'interlagos',
+  istanbul: 'istanbul',
+  jacarepagua: 'jacarepagua',
+  jarama: 'jarama',
+  jeddah: 'jeddah',
+  jerez: 'jerez',
+  kyalami: 'kyalami',
+  las_vegas: 'las-vegas',
+  lemans: 'bugatti',
+  long_beach: 'long-beach',
+  losail: 'lusail',
+  madring: 'madring',
+  magny_cours: 'magny-cours',
+  marina_bay: 'marina-bay',
+  miami: 'miami',
+  monaco: 'monaco',
+  monsanto: 'monsanto',
+  montjuic: 'montjuic',
+  monza: 'monza',
+  mosport: 'mosport',
+  mugello: 'mugello',
+  nivelles: 'nivelles',
+  nurburgring: 'nurburgring',
+  okayama: 'aida',
+  pedralbes: 'pedralbes',
+  pescara: 'pescara',
+  phoenix: 'phoenix',
+  portimao: 'portimao',
+  red_bull_ring: 'spielberg',
+  reims: 'reims',
+  ricard: 'paul-ricard',
+  riverside: 'riverside',
+  rodriguez: 'mexico-city',
+  sebring: 'sebring',
+  sepang: 'sepang',
+  shanghai: 'shanghai',
+  silverstone: 'silverstone',
+  spa: 'spa-francorchamps',
+  suzuka: 'suzuka',
+  tremblant: 'mont-tremblant',
+  valencia: 'valencia',
+  vegas: 'las-vegas',
+  villeneuve: 'montreal',
+  watkins_glen: 'watkins-glen',
+  yas_marina: 'yas-marina',
+  yeongam: 'yeongam',
+  zandvoort: 'zandvoort',
+  zeltweg: 'zeltweg',
+  zolder: 'zolder',
+};
 
 const get = async (url) => {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${res.status} ${url}`);
   return res.text();
+};
+
+const getOrNull = async (url) => {
+  const res = await fetch(url);
+  return res.ok ? res.text() : null;
 };
 
 /** Outline path from the F1DB white-outline SVG (a single `<path>` per file). */
@@ -54,52 +111,137 @@ function outline(svg) {
   return m[1].replace(/\s+/g, ' ').trim();
 }
 
-/** Length / turns / validity window of one layout out of the circuit YAML. */
-function layoutStats(yml, layoutId) {
-  const [head, ...tail] = yml.split('\nlayouts:');
-  const direction = /direction:\s*(\w+)/.exec(head)?.[1];
-  const parts = tail.join('\nlayouts:').split(/^\s*-\s+id:\s*/m);
-  const block = parts.find((b) => b.startsWith(layoutId));
-  if (!block) throw new Error(`layout ${layoutId} not found`);
-  const lengthKm = Number(/length:\s*([\d.]+)/.exec(block)?.[1]);
-  const turns = Number(/turns:\s*(\d+)/.exec(block)?.[1]);
-  if (!Number.isFinite(lengthKm) || !Number.isFinite(turns)) throw new Error(`bad stats for ${layoutId}`);
-  // Layouts carry their years in a trailing comment, e.g. `# 2010-present`.
-  // The earliest year is when this shape started to be used.
-  const years = (block.split('\n')[0].match(/\d{4}/g) ?? []).map(Number);
-  const from = years.length ? Math.min(...years) : 0;
-  return { direction: direction === 'ANTI_CLOCKWISE' ? 'anticlockwise' : 'clockwise', lengthKm, turns, from };
+/**
+ * Years from a layout comment: "1950-1954, 1956, 1958-1960, 1971, 1975-present".
+ * Returns [from, to] pairs; `to` is 9999 for "present".
+ */
+function eras(comment) {
+  const text = comment.replace(/^#\s*/, '');
+  const out = [];
+  const re = /(\d{4})(?:\s*[-–]\s*(\d{4}|present))?/g;
+  let m;
+  while ((m = re.exec(text))) {
+    const from = Number(m[1]);
+    const to = m[2] ? (m[2] === 'present' ? 9999 : Number(m[2])) : from;
+    out.push([from, to]);
+  }
+  return out;
 }
 
-const entries = [];
-for (const [circuitId, slug, layoutId] of MAP) {
-  const [svg, yml] = await Promise.all([
-    get(`${REPO}/src/assets/circuits/white-outline/${layoutId}.svg`),
-    get(`${REPO}/src/data/circuits/${slug}.yml`),
-  ]);
-  const stats = layoutStats(yml, layoutId);
-  entries.push([circuitId, { ...stats, d: outline(svg) }]);
-  console.log(
-    `${circuitId.padEnd(16)} ${layoutId.padEnd(20)} ${String(stats.lengthKm).padEnd(6)} km / ${String(stats.turns).padStart(2)} turns / from ${stats.from || '—'}`,
+/** Layouts of one circuit, in F1DB order. */
+function parseLayouts(yml) {
+  const [head, ...rest] = yml.split('\nlayouts:');
+  const direction = /direction:\s*(\w+)/.exec(head)?.[1] === 'ANTI_CLOCKWISE' ? 'anticlockwise' : 'clockwise';
+  const blocks = rest.join('\nlayouts:').split(/^\s*-\s+id:\s*/m).slice(1);
+  return blocks.map((b) => {
+    const [firstLine, ...tail] = b.split('\n');
+    const id = firstLine.match(/^([\w-]+)/)[1];
+    const comment = firstLine.includes('#') ? `#${firstLine.split('#').slice(1).join('#')}` : '';
+    const body = tail.join('\n');
+    return {
+      id,
+      eras: eras(comment),
+      lengthKm: Number(/length:\s*([\d.]+)/.exec(body)?.[1]),
+      turns: Number(/turns:\s*(\d+)/.exec(body)?.[1]),
+      direction,
+    };
+  });
+}
+
+const fmt = (n) => (Number.isInteger(n) ? String(n) : String(n));
+
+async function mapLimit(items, limit, fn) {
+  const out = [];
+  let i = 0;
+  await Promise.all(
+    Array.from({ length: limit }, async () => {
+      while (i < items.length) {
+        const idx = i++;
+        out[idx] = await fn(items[idx], idx);
+      }
+    }),
   );
+  return out;
 }
 
-const body = entries
-  .map(
-    ([id, c]) =>
-      `  ${id}: {\n    lengthKm: ${c.lengthKm},\n    turns: ${c.turns},\n    direction: '${c.direction}',\n    from: ${c.from},\n    d: '${c.d}',\n  },`,
-  )
-  .join('\n');
+// ---- build ----
 
-const file = `// Generated by scripts/build-circuits.mjs from F1DB (https://github.com/f1db/f1db).
+await rm(resolve(OUT_DIR, 'shapes'), { recursive: true, force: true });
+await mkdir(resolve(OUT_DIR, 'shapes'), { recursive: true });
+
+const slugs = [...new Set(Object.values(MAP))];
+let files = 0;
+let layoutsTotal = 0;
+let bytes = 0;
+const skipped = [];
+
+for (const slug of slugs) {
+  const yml = await get(`${REPO}/src/data/circuits/${slug}.yml`);
+  const layouts = parseLayouts(yml);
+
+  const withOutline = (
+    await mapLimit(layouts, 4, async (l) => {
+      const svg = await getOrNull(`${REPO}/src/assets/circuits/white-outline/${l.id}.svg`);
+      if (!svg) {
+        skipped.push(l.id);
+        return null;
+      }
+      return { ...l, d: outline(svg) };
+    })
+  ).filter(Boolean);
+
+  if (!withOutline.length) {
+    console.log(`! ${slug}: no outlines`);
+    continue;
+  }
+
+  const single = withOutline.length === 1;
+  const body = withOutline
+    .map((l) => {
+      // A layout without a year comment is only trusted when it is the only one.
+      const ranges = l.eras.length ? l.eras : single ? [[0, 9999]] : [];
+      const erasText = ranges.length ? ranges.map(([a, b]) => `[${a}, ${b}]`).join(', ') : '';
+      return `  { eras: [${erasText}], lengthKm: ${fmt(l.lengthKm)}, turns: ${l.turns}, direction: '${l.direction}', d: '${l.d}' },`;
+    })
+    .join('\n');
+
+  const file = `// Generated by scripts/build-circuits.mjs from F1DB (https://github.com/f1db/f1db).
 // Data: CC BY 4.0. Do not edit by hand.
 
-import type { CircuitShape } from './types';
+import type { CircuitLayout } from '../types';
 
-export const CIRCUITS: Record<string, CircuitShape> = {
+export const LAYOUTS: CircuitLayout[] = [
 ${body}
-};
+];
 `;
 
-await writeFile(OUT, file, 'utf8');
-console.log(`\nwrote ${OUT} (${(file.length / 1024).toFixed(1)} KB)`);
+  const target = resolve(OUT_DIR, 'shapes', `${slug}.ts`);
+  await writeFile(target, file, 'utf8');
+  files++;
+  layoutsTotal += withOutline.length;
+  bytes += file.length;
+  console.log(`${slug.padEnd(20)} ${String(withOutline.length).padStart(2)} layouts  ${(file.length / 1024).toFixed(1)} KB`);
+}
+
+const mapBody = Object.entries(MAP)
+  .map(([id, slug]) => `  ${JSON.stringify(id)}: ${JSON.stringify(slug)},`)
+  .join('\n');
+
+await writeFile(
+  resolve(OUT_DIR, 'map.ts'),
+  `// Generated by scripts/build-circuits.mjs. Do not edit by hand.
+
+import type { CircuitSlug } from './types';
+
+/** Jolpica circuitId -> F1DB circuit slug. */
+export const CIRCUIT_SLUGS: Record<string, CircuitSlug> = {
+${mapBody}
+};
+`,
+  'utf8',
+);
+
+console.log(
+  `\n${files} files, ${layoutsTotal} layouts, ${(bytes / 1024).toFixed(0)} KB source` +
+    (skipped.length ? `\nmissing outlines: ${skipped.join(', ')}` : ''),
+);

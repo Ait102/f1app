@@ -46,8 +46,8 @@ test('race page shows the circuit outline', async ({ page }) => {
   await expect(panel.getByText('18')).toBeVisible();
 });
 
-test('modern layout is not shown for an older season', async ({ page }) => {
-  // The stored Silverstone outline is the 2010+ one, so a 1990s race must show no map.
+test('older seasons get the layout of their era', async ({ page }) => {
+  // Silverstone ran the 1997–2009 shape (5.141 km, 17 turns) in 1998.
   const seasonsBody = JSON.stringify({
     MRData: {
       limit: '100',
@@ -76,5 +76,9 @@ test('modern layout is not shown for an older season', async ({ page }) => {
 
   await page.goto('./#/1998/race/1');
   await expect(page.getByRole('heading', { level: 1, name: 'British Grand Prix' })).toBeVisible();
-  await expect(page.locator('.circuit-panel')).toHaveCount(0);
+
+  const panel = page.locator('.circuit-panel');
+  await expect(panel.getByRole('img')).toHaveAccessibleName(/17 поворотов, длина 5\.141 км/);
+  await expect(panel.getByText('5.141 км')).toBeVisible();
+  await expect(panel.getByText(/конфигурация 1997–2009/)).toBeVisible();
 });

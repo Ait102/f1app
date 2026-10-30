@@ -1,13 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { loadCircuit, type CircuitShape } from '../data/circuits';
+import { eraLabel, loadCircuit, type CircuitLayout } from '../data/circuits';
 import { Stat } from './bits';
 
 const FULL_BOX = { x: 0, y: 0, w: 500, h: 500 };
 
 /**
- * Circuit outline + basic stats (length, turns, direction).
- * Renders nothing at all when the circuit is not in the geometry table —
- * the same "no data, no block" rule the rest of the app follows.
+ * Circuit outline + basic stats (length, turns, direction) for a given season.
+ * Renders nothing at all when the layout for that season is unknown — the same
+ * "no data, no block" rule the rest of the app follows.
  */
 export function CircuitPanel({
   circuitId,
@@ -16,10 +16,10 @@ export function CircuitPanel({
 }: {
   circuitId: string | null;
   name: string | null;
-  /** Layouts change over the years; a shape is only valid from its own era. */
+  /** Layouts change over the years; the shape has to match the season. */
   season: number;
 }) {
-  const [shape, setShape] = useState<CircuitShape | null>(null);
+  const [shape, setShape] = useState<CircuitLayout | null>(null);
   const [box, setBox] = useState(FULL_BOX);
   const line = useRef<SVGPathElement>(null);
 
@@ -27,13 +27,13 @@ export function CircuitPanel({
     let alive = true;
     setShape(null);
     setBox(FULL_BOX);
-    loadCircuit(circuitId).then((s) => {
+    loadCircuit(circuitId, season).then((s) => {
       if (alive) setShape(s);
     });
     return () => {
       alive = false;
     };
-  }, [circuitId]);
+  }, [circuitId, season]);
 
   // The source outlines leave different margins inside their 500 × 500 frame,
   // so the viewBox is tightened to the drawing itself for a consistent weight.
@@ -47,9 +47,8 @@ export function CircuitPanel({
   }, [shape]);
 
   if (!shape) return null;
-  // The stored outline is the modern one: showing it for an older season would be wrong.
-  if (shape.from && season < shape.from) return null;
 
+  const era = eraLabel(shape);
   const label = `Схема трассы${name ? ` ${name}` : ''}: ${shape.turns} поворотов, длина ${shape.lengthKm} км`;
 
   return (
@@ -79,7 +78,7 @@ export function CircuitPanel({
               F1DB
             </a>
             , CC BY 4.0
-            {shape.from ? ` · с ${shape.from} года` : ''}
+            {era ? ` · конфигурация ${era}` : ''}
           </p>
         </div>
       </div>

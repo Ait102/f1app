@@ -54,16 +54,21 @@ function outline(svg) {
   return m[1].replace(/\s+/g, ' ').trim();
 }
 
-/** Length / turns of one layout out of the circuit YAML. */
+/** Length / turns / validity window of one layout out of the circuit YAML. */
 function layoutStats(yml, layoutId) {
   const [head, ...tail] = yml.split('\nlayouts:');
   const direction = /direction:\s*(\w+)/.exec(head)?.[1];
-  const block = tail.join('\nlayouts:').split(/^\s*-\s+id:\s*/m).find((b) => b.startsWith(layoutId));
+  const parts = tail.join('\nlayouts:').split(/^\s*-\s+id:\s*/m);
+  const block = parts.find((b) => b.startsWith(layoutId));
   if (!block) throw new Error(`layout ${layoutId} not found`);
   const lengthKm = Number(/length:\s*([\d.]+)/.exec(block)?.[1]);
   const turns = Number(/turns:\s*(\d+)/.exec(block)?.[1]);
   if (!Number.isFinite(lengthKm) || !Number.isFinite(turns)) throw new Error(`bad stats for ${layoutId}`);
-  return { direction: direction === 'ANTI_CLOCKWISE' ? 'anticlockwise' : 'clockwise', lengthKm, turns };
+  // Layouts carry their years in a trailing comment, e.g. `# 2010-present`.
+  // The earliest year is when this shape started to be used.
+  const years = (block.split('\n')[0].match(/\d{4}/g) ?? []).map(Number);
+  const from = years.length ? Math.min(...years) : 0;
+  return { direction: direction === 'ANTI_CLOCKWISE' ? 'anticlockwise' : 'clockwise', lengthKm, turns, from };
 }
 
 const entries = [];
@@ -74,13 +79,15 @@ for (const [circuitId, slug, layoutId] of MAP) {
   ]);
   const stats = layoutStats(yml, layoutId);
   entries.push([circuitId, { ...stats, d: outline(svg) }]);
-  console.log(`${circuitId.padEnd(16)} ${layoutId.padEnd(20)} ${stats.lengthKm} km / ${stats.turns} turns`);
+  console.log(
+    `${circuitId.padEnd(16)} ${layoutId.padEnd(20)} ${String(stats.lengthKm).padEnd(6)} km / ${String(stats.turns).padStart(2)} turns / from ${stats.from || '—'}`,
+  );
 }
 
 const body = entries
   .map(
     ([id, c]) =>
-      `  ${id}: {\n    lengthKm: ${c.lengthKm},\n    turns: ${c.turns},\n    direction: '${c.direction}',\n    d: '${c.d}',\n  },`,
+      `  ${id}: {\n    lengthKm: ${c.lengthKm},\n    turns: ${c.turns},\n    direction: '${c.direction}',\n    from: ${c.from},\n    d: '${c.d}',\n  },`,
   )
   .join('\n');
 

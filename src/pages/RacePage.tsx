@@ -71,7 +71,7 @@ function Race({ season }: { season: number }) {
         )}
       </PageHeader>
 
-      <CircuitPanel circuitId={race.circuitId} name={race.circuitName} />
+      <CircuitPanel circuitId={race.circuitId} name={race.circuitName} season={season} />
 
       <div className="race-layout">
         <aside className="card schedule">

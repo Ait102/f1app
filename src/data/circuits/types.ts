@@ -6,6 +6,8 @@ export interface CircuitShape {
   lengthKm: number;
   /** Number of turns. */
   turns: number;
+  /** First season this layout was used in; 0 when F1DB does not say. */
+  from: number;
   /** SVG path in a 500 × 500 viewBox. */
   d: string;
 }

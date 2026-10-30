@@ -76,7 +76,7 @@ function CircuitBody({ season, id }: { season: number; id: string }) {
         </p>
       </PageHeader>
 
-      <CircuitPanel circuitId={c.id} name={c.name} />
+      <CircuitPanel circuitId={c.id} name={c.name} season={season} />
 
       <div className="grid-2">
         <article className="card">

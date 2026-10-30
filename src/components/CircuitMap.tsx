@@ -9,7 +9,16 @@ const FULL_BOX = { x: 0, y: 0, w: 500, h: 500 };
  * Renders nothing at all when the circuit is not in the geometry table —
  * the same "no data, no block" rule the rest of the app follows.
  */
-export function CircuitPanel({ circuitId, name }: { circuitId: string | null; name: string | null }) {
+export function CircuitPanel({
+  circuitId,
+  name,
+  season,
+}: {
+  circuitId: string | null;
+  name: string | null;
+  /** Layouts change over the years; a shape is only valid from its own era. */
+  season: number;
+}) {
   const [shape, setShape] = useState<CircuitShape | null>(null);
   const [box, setBox] = useState(FULL_BOX);
   const line = useRef<SVGPathElement>(null);
@@ -38,6 +47,8 @@ export function CircuitPanel({ circuitId, name }: { circuitId: string | null; na
   }, [shape]);
 
   if (!shape) return null;
+  // The stored outline is the modern one: showing it for an older season would be wrong.
+  if (shape.from && season < shape.from) return null;
 
   const label = `Схема трассы${name ? ` ${name}` : ''}: ${shape.turns} поворотов, длина ${shape.lengthKm} км`;
 
@@ -68,6 +79,7 @@ export function CircuitPanel({ circuitId, name }: { circuitId: string | null; na
               F1DB
             </a>
             , CC BY 4.0
+            {shape.from ? ` · с ${shape.from} года` : ''}
           </p>
         </div>
       </div>

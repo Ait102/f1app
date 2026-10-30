@@ -45,3 +45,36 @@ test('race page shows the circuit outline', async ({ page }) => {
   await expect(panel.getByText('5.891 км')).toBeVisible();
   await expect(panel.getByText('18')).toBeVisible();
 });
+
+test('modern layout is not shown for an older season', async ({ page }) => {
+  // The stored Silverstone outline is the 2010+ one, so a 1990s race must show no map.
+  const seasonsBody = JSON.stringify({
+    MRData: {
+      limit: '100',
+      offset: '0',
+      total: '3',
+      SeasonTable: { Seasons: [{ season: '1998' }, { season: '2025' }, { season: '2026' }] },
+    },
+  });
+  const oldRaces = JSON.stringify({
+    MRData: {
+      limit: '100',
+      offset: '0',
+      total: '1',
+      RaceTable: {
+        season: '1998',
+        Races: [{ ...race(1, 'British Grand Prix', '1998-07-12'), season: '1998' }],
+      },
+    },
+  });
+
+  await mockApi(page, (path) => {
+    if (path === '/seasons/') return { status: 200, headers: { 'content-type': 'application/json' }, body: seasonsBody };
+    if (path === '/1998/races/') return { status: 200, headers: { 'content-type': 'application/json' }, body: oldRaces };
+    return null;
+  });
+
+  await page.goto('./#/1998/race/1');
+  await expect(page.getByRole('heading', { level: 1, name: 'British Grand Prix' })).toBeVisible();
+  await expect(page.locator('.circuit-panel')).toHaveCount(0);
+});

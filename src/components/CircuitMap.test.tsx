@@ -46,6 +46,7 @@ describe('circuit geometry', () => {
       expect(shape.lengthKm, id).toBeGreaterThan(2);
       expect(shape.lengthKm, id).toBeLessThan(8);
       expect(shape.turns, id).toBeGreaterThan(5);
+      expect(shape.from, id).toBeGreaterThanOrEqual(0);
       expect(['clockwise', 'anticlockwise'], id).toContain(shape.direction);
     }
   });
@@ -58,15 +59,25 @@ describe('circuit geometry', () => {
 
 describe('CircuitPanel', () => {
   it('draws the outline with stats', async () => {
-    const { container } = render(<CircuitPanel circuitId="monza" name="Монца" />);
+    const { container } = render(<CircuitPanel circuitId="monza" name="Монца" season={2026} />);
     expect(await screen.findByRole('heading', { name: 'Схема трассы' })).toBeInTheDocument();
     expect(screen.getByRole('img')).toHaveAccessibleName(/Монца: 11 поворотов, длина 5.793 км/);
     expect(container.querySelector('path')).toHaveAttribute('d', CIRCUITS.monza.d);
     expect(container.querySelector('.stat')).toBeInTheDocument();
   });
 
+  it('hides the modern layout for a season before it existed', async () => {
+    const { container, unmount } = render(<CircuitPanel circuitId="monza" name="Монца" season={1999} />);
+    await new Promise((r) => setTimeout(r, 30));
+    expect(container).toBeEmptyDOMElement();
+    unmount();
+
+    const old = render(<CircuitPanel circuitId="monza" name="Монца" season={2000} />);
+    expect(await old.findByRole('heading', { name: 'Схема трассы' })).toBeInTheDocument();
+  });
+
   it('renders nothing when the circuit has no geometry', async () => {
-    const { container } = render(<CircuitPanel circuitId="unknown" name="Тест" />);
+    const { container } = render(<CircuitPanel circuitId="unknown" name="Тест" season={2026} />);
     await new Promise((r) => setTimeout(r, 20));
     expect(container).toBeEmptyDOMElement();
   });

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { Constructor, Driver } from '../domain/types';
+import { preloadCircuit } from '../data/circuits';
 import { useSeasonParam } from '../hooks/data';
 import { useFavorites, type FavKind } from '../hooks/useFavorites';
 import { driverName } from '../domain/mappers';
@@ -80,7 +81,17 @@ export function TeamCell({ team, season }: { team: Constructor | null; season?: 
 
 export function CircuitLink({ season, id, name }: { season: number; id: string | null; name: string | null }) {
   if (!name) return null;
-  return id ? <Link to={`/${season}/circuit/${id}`}>{name}</Link> : <>{name}</>;
+  return id ? (
+    <Link
+      to={`/${season}/circuit/${id}`}
+      onMouseEnter={() => preloadCircuit(id)}
+      onFocus={() => preloadCircuit(id)}
+    >
+      {name}
+    </Link>
+  ) : (
+    <>{name}</>
+  );
 }
 
 export function FavButton({ kind, id, name }: { kind: FavKind; id: string; name: string }) {

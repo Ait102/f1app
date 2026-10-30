@@ -3,4 +3,5 @@ dist
 *.log
 test-results
 playwright-report
+e2e/visual.spec.ts-snapshots
 .claude/

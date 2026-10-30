@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { DataState } from '../components/DataState';
 import { Moment, StatusBadge } from '../components/bits';
 import { findNextRace, raceStatus, STATUS_LABELS, type RaceStatus } from '../domain/status';
+import { preloadCircuit } from '../data/circuits';
 import { useDriverStandings, useRaces } from '../hooks/data';
 import { PageHeader, SeasonGuard, useNow } from './common';
 
@@ -69,6 +70,8 @@ function Calendar({ season }: { season: number }) {
                         to={`/${season}/race/${race.round}`}
                         className={`race-card race-card--${status}${race.round === nextRound ? ' race-card--next' : ''}`}
                         data-round={race.round}
+                        onMouseEnter={() => preloadCircuit(race.circuitId)}
+                        onFocus={() => preloadCircuit(race.circuitId)}
                       >
                         {race.round === nextRound && <span className="race-card__next">Следующий</span>}
                         <span className="race-card__top">

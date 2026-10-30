@@ -3,6 +3,8 @@ import { defineConfig, devices } from '@playwright/test';
 // E2E runs against the production build served by `vite preview`.
 export default defineConfig({
   testDir: 'e2e',
+  // visual.spec.ts is opt-in: npm run test:visual
+  testIgnore: 'visual.spec.ts',
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : 'list',

@@ -15,6 +15,7 @@ npm test         # Vitest + Testing Library
 npm run test:e2e # Playwright (первый раз: npx playwright install chromium)
 npm run build    # production-сборка в dist/
 npm run test:contract  # проверка живого API Jolpica (формат и доступность)
+npm run test:visual    # скриншотные проверки страниц (нужны базлайны, см. docs/TESTING.md)
 ```
 
 Поддержка проекта (еженедельная проверка API, лимиты, обновления) — [docs/MAINTENANCE.md](docs/MAINTENANCE.md).

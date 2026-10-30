@@ -17,6 +17,17 @@ async function layoutsOf(slug: string): Promise<CircuitLayout[]> {
   return mod.LAYOUTS;
 }
 
+/**
+ * Fetches the chunk ahead of time, e.g. when the pointer reaches a race card.
+ * Failures are ignored: the map loads on its own when the page needs it.
+ */
+export function preloadCircuit(circuitId: string | null | undefined): void {
+  if (!circuitId) return;
+  const slug = CIRCUIT_SLUGS[circuitId];
+  if (!slug || cache.has(slug)) return;
+  void layoutsOf(slug).catch(() => {});
+}
+
 /** Shape of the circuit as it existed in `season`, or null when unknown. */
 export async function loadCircuit(
   circuitId: string | null | undefined,

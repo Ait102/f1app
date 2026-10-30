@@ -1,6 +1,6 @@
 # F1 Season Hub
 
-[![Tests and deploy](https://github.com/Ait102/f1app/actions/workflows/deploy.yml/badge.svg)](https://github.com/Ait102/f1app/actions/workflows/deploy.yml)
+[![Tests and build](https://github.com/Ait102/f1app/actions/workflows/ci.yml/badge.svg)](https://github.com/Ait102/f1app/actions/workflows/ci.yml)
 [![API health](https://github.com/Ait102/f1app/actions/workflows/api-health.yml/badge.svg)](https://github.com/Ait102/f1app/actions/workflows/api-health.yml)
 
 Веб-приложение с календарём, результатами и зачётами Formula 1 (MVP по ТЗ v0.2).
@@ -21,11 +21,10 @@ npm run test:contract  # проверка живого API Jolpica (формат
 
 Сборка статическая (HashRouter, `base: './'`), её можно выложить на любой хостинг.
 
-## Публикация на GitHub Pages
+## Публикация
 
-Workflow `.github/workflows/deploy.yml` при каждом пуше в `main` прогоняет тесты, собирает проект и публикует сайт.
-Один раз включите: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-Сайт будет доступен по адресу `https://<user>.github.io/f1app/`.
+Сейчас сайт не публикуется: CI (`.github/workflows/ci.yml`) на каждый пуш только прогоняет тесты и собирает проект.
+Чтобы выложить сайт, достаточно отдать папку `dist/` после `npm run build` любому статическому хостингу (GitHub Pages с источником «GitHub Actions», Netlify, Vercel) — сборка работает из любой подпапки.
 
 Отчёт о тестировании и сверке с официальными данными — [docs/TESTING.md](docs/TESTING.md).
 

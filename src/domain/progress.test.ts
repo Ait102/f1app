@@ -1,4 +1,4 @@
-import { buildProgress, missingRounds, niceAxis } from './progress';
+import { buildProgress, niceAxis } from './progress';
 import type { DriverStanding } from './types';
 
 const st = (id: string, pos: number, pts: number, team = 'mercedes'): DriverStanding => ({
@@ -40,10 +40,6 @@ describe('buildProgress', () => {
 });
 
 describe('helpers', () => {
-  it('finds missing rounds', () => {
-    expect(missingRounds([1, 2, 4], 5)).toEqual([3, 5]);
-  });
-
   it('makes a readable axis', () => {
     expect(niceAxis(365)).toEqual({ max: 400, step: 100 });
     expect(niceAxis(0)).toEqual({ max: 10, step: 2 });

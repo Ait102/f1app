@@ -1,7 +1,8 @@
+import type React from 'react';
 import { Link } from 'react-router-dom';
 import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
-import { DriverCell, Moment, StatusBadge, TeamCell } from '../components/bits';
-import { formatCountdown, formatPoints } from '../domain/format';
+import { DriverCell, Moment, StatusBadge, TeamCell, posClass } from '../components/bits';
+import { countdownParts, formatPoints } from '../domain/format';
 import { findNextRace, raceStatus, sessionStart } from '../domain/status';
 import type { RaceEvent } from '../domain/types';
 import { useConstructorStandings, useDriverStandings, useRaceResults, useRaces } from '../hooks/data';
@@ -36,18 +37,17 @@ function Home({ season }: { season: number }) {
         )}
       </PageHeader>
 
-      <div className="grid-2">
-        <article className="card">
-          <h2 className="card__title">Следующий этап</h2>
-          {races.status === 'loading' || ds.status === 'loading' ? (
-            <Loading rows={3} />
-          ) : races.status === 'error' ? (
-            <ErrorBox error={races.error} onRetry={races.reload} />
-          ) : (
-            <NextRace races={races.data} lastRound={lastRound} now={now} />
-          )}
-        </article>
+      <article className="hero">
+        {races.status === 'loading' || ds.status === 'loading' ? (
+          <Loading rows={3} />
+        ) : races.status === 'error' ? (
+          <ErrorBox error={races.error} onRetry={races.reload} />
+        ) : (
+          <NextRace races={races.data} lastRound={lastRound} now={now} />
+        )}
+      </article>
 
+      <div className="grid-3">
         <article className="card">
           <h2 className="card__title">Последний завершённый этап</h2>
           {ds.status === 'loading' ? (
@@ -60,9 +60,7 @@ function Home({ season }: { season: number }) {
             <LastRace season={season} round={lastRound} />
           )}
         </article>
-      </div>
 
-      <div className="grid-2">
         <article className="card">
           <div className="card__head">
             <h2 className="card__title">Личный зачёт</h2>
@@ -72,8 +70,8 @@ function Home({ season }: { season: number }) {
             {(d) => (
               <ol className="leaders">
                 {d.rows.slice(0, 5).map((r) => (
-                  <li key={r.driver.id}>
-                    <span className="leaders__pos">{r.positionText ?? r.position ?? '—'}</span>
+                  <li key={r.driver.id} style={barStyle(r.points, d.rows[0]?.points)}>
+                    <span className={posClass('leaders__pos', r.position)}>{r.positionText ?? r.position ?? '—'}</span>
                     <DriverCell driver={r.driver} team={r.constructors.at(-1)} />
                     <span className="leaders__pts">{formatPoints(r.points)}</span>
                   </li>
@@ -96,8 +94,8 @@ function Home({ season }: { season: number }) {
             {(d) => (
               <ol className="leaders">
                 {d.rows.slice(0, 5).map((r) => (
-                  <li key={r.constructor.id}>
-                    <span className="leaders__pos">{r.positionText ?? r.position ?? '—'}</span>
+                  <li key={r.constructor.id} style={barStyle(r.points, d.rows[0]?.points)}>
+                    <span className={posClass('leaders__pos', r.position)}>{r.positionText ?? r.position ?? '—'}</span>
                     <TeamCell team={r.constructor} />
                     <span className="leaders__pts">{formatPoints(r.points)}</span>
                   </li>
@@ -119,36 +117,66 @@ function NextRace({ races, lastRound, now }: { races: RaceEvent[]; lastRound: nu
     const awaiting = races.find((r) => raceStatus(r, now, lastRound) === 'awaiting');
     if (awaiting) {
       return (
-        <div className="next">
-          <Link to={`/${awaiting.seasonYear}/race/${awaiting.round}`} className="next__name">
+        <div className="hero__main">
+          <p className="hero__eyebrow">Этап {awaiting.round}</p>
+          <Link to={`/${awaiting.seasonYear}/race/${awaiting.round}`} className="hero__name">
             {awaiting.name}
           </Link>
           <p className="muted">Этап прошёл, результаты ещё не опубликованы источником.</p>
         </div>
       );
     }
-    return <p className="muted">Предстоящих этапов в этом сезоне нет.</p>;
+    return (
+      <div className="hero__main">
+        <p className="hero__eyebrow">Сезон завершён</p>
+        <p className="hero__name">Предстоящих этапов в этом сезоне нет</p>
+      </div>
+    );
   }
   const status = raceStatus(next, now, lastRound);
   const start = sessionStart(next);
-  const countdown = start && next.time ? formatCountdown(start, now) : null;
+  const left = start && next.time ? countdownParts(start, now) : null;
   return (
-    <div className="next">
-      <p className="next__round">
-        Этап {next.round} <StatusBadge status={status} />
-      </p>
-      <Link to={`/${next.seasonYear}/race/${next.round}`} className="next__name">
-        {next.name}
-      </Link>
-      <p className="muted">
-        {[next.circuitName, next.locality, next.country].filter(Boolean).join(' · ') || 'Трасса не указана'}
-      </p>
-      <p className="next__date">
-        Гонка: <Moment date={next.date} time={next.time} />
-      </p>
-      {countdown && <p className="next__countdown">Старт {countdown}</p>}
+    <div className="hero__inner">
+      <div className="hero__main">
+        <p className="hero__eyebrow">
+          Следующий этап · {next.round} <StatusBadge status={status} />
+          {next.hasSprint && <span className="tag">Спринт</span>}
+        </p>
+        <Link to={`/${next.seasonYear}/race/${next.round}`} className="hero__name">
+          {next.name}
+        </Link>
+        <p className="hero__place">
+          {[next.circuitName, next.locality, next.country].filter(Boolean).join(' · ') || 'Трасса не указана'}
+        </p>
+        <p className="hero__date">
+          Гонка: <Moment date={next.date} time={next.time} />
+        </p>
+      </div>
+      {left && (
+        <div className="countdown" role="timer" aria-label={`До старта гонки: ${left.days} д ${left.hours} ч ${left.minutes} мин`}>
+          <CountdownBox value={left.days} label="дней" />
+          <CountdownBox value={left.hours} label="часов" />
+          <CountdownBox value={left.minutes} label="минут" />
+        </div>
+      )}
     </div>
   );
+}
+
+function CountdownBox({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="countdown__box" aria-hidden="true">
+      <span className="countdown__value">{String(value).padStart(2, '0')}</span>
+      <span className="countdown__label">{label}</span>
+    </div>
+  );
+}
+
+/** Width of the faint bar behind a leader row, relative to the leader's points. */
+function barStyle(points: number | null, leader: number | null | undefined) {
+  const pct = points !== null && leader ? Math.max(4, Math.min(100, (points / leader) * 100)) : 0;
+  return { '--bar': `${pct}%` } as React.CSSProperties;
 }
 
 function LastRace({ season, round }: { season: number; round: number }) {

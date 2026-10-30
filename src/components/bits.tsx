@@ -5,7 +5,7 @@ import { useSeasonParam } from '../hooks/data';
 import { useFavorites, type FavKind } from '../hooks/useFavorites';
 import { driverName } from '../domain/mappers';
 import { STATUS_LABELS, type RaceStatus } from '../domain/status';
-import { formatMoment } from '../domain/format';
+import { formatMoment, formatPoints } from '../domain/format';
 
 // Decorative team accents only (not data). Unknown teams get a neutral color.
 const TEAM_COLORS: Record<string, string> = {
@@ -149,5 +149,23 @@ export function SearchBox({
         autoComplete="off"
       />
     </label>
+  );
+}
+
+/** Gold/silver/bronze modifier for positions 1–3. */
+export function posClass(base: string, position: number | null): string {
+  return position !== null && position <= 3 ? `${base} pos--${position}` : base;
+}
+
+/** Points with a thin bar showing the share of the leader's points (visual only, no maths on the result). */
+export function PointsWithBar({ points, leader }: { points: number | null; leader: number | null | undefined }) {
+  const pct = points !== null && leader ? Math.max(2, Math.min(100, (points / leader) * 100)) : 0;
+  return (
+    <span className="pts">
+      <strong>{formatPoints(points)}</strong>
+      <span className="pts__track" aria-hidden="true">
+        <span className="pts__fill" style={{ width: `${pct}%` }} />
+      </span>
+    </span>
   );
 }

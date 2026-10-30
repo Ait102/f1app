@@ -92,14 +92,9 @@ export function formatPoints(p: number | null): string {
   return p.toLocaleString(LOCALE, { maximumFractionDigits: 1 });
 }
 
-export function formatCountdown(target: Date, now: Date): string | null {
+export function countdownParts(target: Date, now: Date): { days: number; hours: number; minutes: number } | null {
   const ms = target.getTime() - now.getTime();
   if (ms <= 0) return null;
   const mins = Math.floor(ms / 60000);
-  const days = Math.floor(mins / 1440);
-  const hours = Math.floor((mins % 1440) / 60);
-  const minutes = mins % 60;
-  if (days > 0) return `через ${days} д ${hours} ч`;
-  if (hours > 0) return `через ${hours} ч ${minutes} мин`;
-  return `через ${minutes} мин`;
+  return { days: Math.floor(mins / 1440), hours: Math.floor((mins % 1440) / 60), minutes: mins % 60 };
 }

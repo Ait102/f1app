@@ -55,14 +55,6 @@ export function buildProgress(input: RoundStandings[]): Progress {
   return { rounds, series, maxPoints };
 }
 
-/** Round numbers in 1..lastRound that are missing from the loaded data. */
-export function missingRounds(loaded: number[], lastRound: number): number[] {
-  const have = new Set(loaded);
-  const out: number[] = [];
-  for (let r = 1; r <= lastRound; r++) if (!have.has(r)) out.push(r);
-  return out;
-}
-
 /** "Nice" axis maximum and step for a points axis. */
 export function niceAxis(max: number, ticks = 5): { max: number; step: number } {
   if (max <= 0) return { max: 10, step: 2 };

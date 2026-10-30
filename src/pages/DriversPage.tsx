@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { DataState } from '../components/DataState';
-import { DriverCell, SearchBox, matchesDriver } from '../components/bits';
+import { DriverCell, PointsWithBar, SearchBox, matchesDriver, posClass } from '../components/bits';
 import { SortableTable, type Column } from '../components/SortableTable';
-import { formatPoints } from '../domain/format';
 import type { DriverStanding } from '../domain/types';
 import { useDriverStandings } from '../hooks/data';
 import { PageHeader, SeasonGuard } from './common';
 import { useFavorites } from '../hooks/useFavorites';
 
-const columns: Column<DriverStanding>[] = [
-  { key: 'pos', header: 'Позиция', abbr: 'Поз.', align: 'center', render: (r) => <span className="pos">{r.positionText ?? r.position ?? '—'}</span>, sortValue: (r) => r.position },
+function makeColumns(leader: number | null | undefined): Column<DriverStanding>[] {
+  return [
+  { key: 'pos', header: 'Позиция', abbr: 'Поз.', align: 'center', render: (r) => <span className={posClass('pos', r.position)}>{r.positionText ?? r.position ?? '—'}</span>, sortValue: (r) => r.position },
   { key: 'driver', header: 'Пилот', render: (r) => <DriverCell driver={r.driver} team={r.constructors.at(-1)} />, sortValue: (r) => r.driver.familyName },
   { key: 'nat', header: 'Страна', optional: true, render: (r) => r.driver.nationality ?? '—', sortValue: (r) => r.driver.nationality },
   {
@@ -20,8 +20,9 @@ const columns: Column<DriverStanding>[] = [
     sortValue: (r) => r.constructors.at(-1)?.name ?? null,
   },
   { key: 'wins', header: 'Победы', abbr: 'Поб.', align: 'right', render: (r) => r.wins ?? '—', sortValue: (r) => r.wins },
-  { key: 'pts', header: 'Очки', align: 'right', render: (r) => <strong>{formatPoints(r.points)}</strong>, sortValue: (r) => r.points },
-];
+  { key: 'pts', header: 'Очки', align: 'right', render: (r) => <PointsWithBar points={r.points} leader={leader} />, sortValue: (r) => r.points },
+  ];
+}
 
 export function DriversPage() {
   return <SeasonGuard>{(season) => <Drivers season={season} />}</SeasonGuard>;
@@ -47,7 +48,7 @@ function Drivers({ season }: { season: number }) {
               {rows.length === 0 ? (
                 <p className="muted">Ничего не найдено.</p>
               ) : (
-                <SortableTable columns={columns} rows={rows} rowKey={(r) => r.driver.id} caption={`Личный зачёт ${season}`} rowClassName={(r) => (isFav('drivers', r.driver.id) ? 'row--fav' : undefined)} />
+                <SortableTable columns={makeColumns(d.rows[0]?.points)} rows={rows} rowKey={(r) => r.driver.id} caption={`Личный зачёт ${season}`} rowClassName={(r) => (isFav('drivers', r.driver.id) ? 'row--fav' : undefined)} />
               )}
             </>
           );

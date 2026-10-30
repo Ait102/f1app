@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DataState } from '../components/DataState';
 import { Moment, StatusBadge } from '../components/bits';
-import { raceStatus, STATUS_LABELS, type RaceStatus } from '../domain/status';
+import { findNextRace, raceStatus, STATUS_LABELS, type RaceStatus } from '../domain/status';
 import { useDriverStandings, useRaces } from '../hooks/data';
 import { PageHeader, SeasonGuard, useNow } from './common';
 
@@ -32,6 +32,7 @@ function Calendar({ season }: { season: number }) {
       >
         {(list) => {
           const withStatus = list.map((race) => ({ race, status: raceStatus(race, now, lastRound) }));
+          const nextRound = findNextRace(list, now, lastRound)?.round ?? null;
           const present = new Set(withStatus.map((x) => x.status));
           const filters: Filter[] = ['all', ...(['completed', 'live', 'awaiting', 'upcoming', 'unknown'] as RaceStatus[]).filter((s) => present.has(s))];
           const shown = filter === 'all' ? withStatus : withStatus.filter((x) => x.status === filter);
@@ -64,7 +65,12 @@ function Calendar({ season }: { season: number }) {
                 <ol className="race-grid">
                   {shown.map(({ race, status }) => (
                     <li key={race.round}>
-                      <Link to={`/${season}/race/${race.round}`} className={`race-card race-card--${status}`}>
+                      <Link
+                        to={`/${season}/race/${race.round}`}
+                        className={`race-card race-card--${status}${race.round === nextRound ? ' race-card--next' : ''}`}
+                        data-round={race.round}
+                      >
+                        {race.round === nextRound && <span className="race-card__next">Следующий</span>}
                         <span className="race-card__top">
                           <span className="race-card__round">Этап {race.round}</span>
                           <StatusBadge status={status} />

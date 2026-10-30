@@ -1,20 +1,21 @@
 import { useState } from 'react';
 import { DataState } from '../components/DataState';
-import { SearchBox, TeamCell } from '../components/bits';
+import { PointsWithBar, SearchBox, TeamCell, posClass } from '../components/bits';
 import { SortableTable, type Column } from '../components/SortableTable';
-import { formatPoints } from '../domain/format';
 import type { ConstructorStanding } from '../domain/types';
 import { useConstructorStandings } from '../hooks/data';
 import { PageHeader, SeasonGuard } from './common';
 import { useFavorites } from '../hooks/useFavorites';
 
-const columns: Column<ConstructorStanding>[] = [
-  { key: 'pos', header: 'Позиция', abbr: 'Поз.', align: 'center', render: (r) => <span className="pos">{r.positionText ?? r.position ?? '—'}</span>, sortValue: (r) => r.position },
+function makeColumns(leader: number | null | undefined): Column<ConstructorStanding>[] {
+  return [
+  { key: 'pos', header: 'Позиция', abbr: 'Поз.', align: 'center', render: (r) => <span className={posClass('pos', r.position)}>{r.positionText ?? r.position ?? '—'}</span>, sortValue: (r) => r.position },
   { key: 'team', header: 'Команда', render: (r) => <TeamCell team={r.constructor} />, sortValue: (r) => r.constructor.name },
   { key: 'nat', header: 'Страна', optional: true, render: (r) => r.constructor.nationality ?? '—', sortValue: (r) => r.constructor.nationality },
   { key: 'wins', header: 'Победы', abbr: 'Поб.', align: 'right', render: (r) => r.wins ?? '—', sortValue: (r) => r.wins },
-  { key: 'pts', header: 'Очки', align: 'right', render: (r) => <strong>{formatPoints(r.points)}</strong>, sortValue: (r) => r.points },
-];
+  { key: 'pts', header: 'Очки', align: 'right', render: (r) => <PointsWithBar points={r.points} leader={leader} />, sortValue: (r) => r.points },
+  ];
+}
 
 export function ConstructorsPage() {
   return <SeasonGuard>{(season) => <Constructors season={season} />}</SeasonGuard>;
@@ -46,7 +47,7 @@ function Constructors({ season }: { season: number }) {
               {rows.length === 0 ? (
                 <p className="muted">Ничего не найдено.</p>
               ) : (
-                <SortableTable columns={columns} rows={rows} rowKey={(r) => r.constructor.id} caption={`Кубок конструкторов ${season}`} rowClassName={(r) => (isFav('constructors', r.constructor.id) ? 'row--fav' : undefined)} />
+                <SortableTable columns={makeColumns(d.rows[0]?.points)} rows={rows} rowKey={(r) => r.constructor.id} caption={`Кубок конструкторов ${season}`} rowClassName={(r) => (isFav('constructors', r.constructor.id) ? 'row--fav' : undefined)} />
               )}
             </>
           );

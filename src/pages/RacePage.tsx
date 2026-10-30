@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
-import { CircuitLink, DriverCell, Moment, SearchBox, StatusBadge, TeamCell, matchesDriver } from '../components/bits';
+import { CircuitLink, DriverCell, Moment, SearchBox, StatusBadge, TeamCell, matchesDriver, posClass } from '../components/bits';
 import { SortableTable, type Column } from '../components/SortableTable';
 import { formatPoints } from '../domain/format';
 import { raceStatus, type RaceStatus } from '../domain/status';
@@ -147,7 +147,7 @@ function resultColumns(): Column<RaceResult>[] {
       header: 'Позиция',
       abbr: 'Поз.',
       align: 'center',
-      render: (r) => <span className="pos">{r.positionText ?? r.position ?? '—'}</span>,
+      render: (r) => <span className={posClass('pos', r.position)}>{r.positionText ?? r.position ?? '—'}</span>,
       sortValue: (r) => r.position,
     },
     { key: 'driver', header: 'Пилот', render: (r) => <DriverCell driver={r.driver} team={r.constructor} />, sortValue: (r) => r.driver.familyName },
@@ -202,7 +202,7 @@ function SprintTab({ race }: { race: RaceEvent }) {
 }
 
 const qualiColumns: Column<QualifyingResult>[] = [
-  { key: 'pos', header: 'Позиция', abbr: 'Поз.', align: 'center', render: (r) => <span className="pos">{r.position ?? '—'}</span>, sortValue: (r) => r.position },
+  { key: 'pos', header: 'Позиция', abbr: 'Поз.', align: 'center', render: (r) => <span className={posClass('pos', r.position)}>{r.position ?? '—'}</span>, sortValue: (r) => r.position },
   { key: 'driver', header: 'Пилот', render: (r) => <DriverCell driver={r.driver} team={r.constructor} />, sortValue: (r) => r.driver.familyName },
   { key: 'team', header: 'Команда', optional: true, render: (r) => <TeamCell team={r.constructor} />, sortValue: (r) => r.constructor?.name ?? null },
   { key: 'q1', header: 'Q1', align: 'right', render: (r) => r.q1 ?? '—' },

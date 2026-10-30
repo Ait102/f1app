@@ -1,0 +1,242 @@
+/* v2 theme: page header, cards, hero, countdown. */
+
+/* ---------- Заголовок страницы ---------- */
+
+.page-header {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--s6);
+  padding-bottom: var(--s5);
+  border-bottom: 1px solid var(--border);
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 56px;
+  height: 2px;
+  background: var(--accent);
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: clamp(1.85rem, 4.6vw, 2.85rem);
+  font-weight: 900;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  height: 2px;
+  margin-right: 9px;
+  vertical-align: 4px;
+  background: var(--accent);
+}
+
+.lead {
+  max-width: 62ch;
+  margin: var(--s3) 0 0;
+  color: var(--muted);
+  font-size: 0.98rem;
+}
+
+.page-header .lead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+
+/* ---------- Карточки ---------- */
+
+.card {
+  position: relative;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: var(--sheen), var(--surface);
+  box-shadow: none;
+  padding: var(--s5);
+}
+
+.card__head {
+  align-items: center;
+  gap: var(--s3);
+  padding-bottom: var(--s3);
+  margin-bottom: var(--s3);
+  border-bottom: 1px solid var(--border);
+}
+
+.card__title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.card__title::before {
+  content: '';
+  width: 14px;
+  height: 2px;
+  background: var(--accent);
+}
+
+.card__more {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color var(--t-fast) var(--ease);
+}
+
+.card__more:hover {
+  color: var(--text);
+}
+
+.card > .progress {
+  margin-top: var(--s3);
+}
+
+.progress {
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+}
+
+.progress__bar {
+  background: linear-gradient(90deg, rgba(225, 6, 0, 0.55), var(--accent));
+}
+
+/* ---------- Герой: следующий этап ---------- */
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--r-xl);
+  border: 1px solid var(--border);
+  padding: var(--s6) var(--s6) var(--s5);
+  margin-bottom: var(--s4);
+  background:
+    radial-gradient(680px 300px at 90% -30%, rgba(225, 6, 0, 0.3), transparent 68%),
+    linear-gradient(180deg, #14161d 0%, #0e1015 100%);
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), rgba(225, 6, 0, 0.12) 42%, transparent 74%);
+}
+
+.hero::after {
+  display: none;
+}
+
+.hero__inner {
+  gap: var(--s6);
+}
+
+.hero__eyebrow {
+  margin: 0 0 12px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hero__name {
+  margin: 0 0 10px;
+  font-size: clamp(1.7rem, 5vw, 2.9rem);
+  font-weight: 900;
+  font-style: normal;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+}
+
+a.hero__name:hover {
+  color: var(--text);
+  text-shadow: none;
+}
+
+.hero__name::after {
+  content: '';
+  display: inline-block;
+  width: 0.44em;
+  height: 2px;
+  margin-left: 0.3em;
+  vertical-align: 0.22em;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity var(--t) var(--ease), width var(--t) var(--ease);
+}
+
+a.hero__name:hover::after,
+a.hero__name:focus-visible::after {
+  width: 0.72em;
+  opacity: 1;
+}
+
+.hero__place {
+  margin: 0 0 6px;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.94rem;
+}
+
+.hero__date {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+/* ---------- Обратный отсчёт ---------- */
+
+.countdown {
+  position: relative;
+  z-index: 1;
+  gap: 6px;
+}
+
+.countdown__box {
+  min-width: 74px;
+  padding: 10px 8px 12px;
+  border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  backdrop-filter: none;
+}
+
+.countdown__value {
+  font-size: 1.9rem;
+  letter-spacing: -0.03em;
+}
+
+.countdown__label {
+  margin-top: 6px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+

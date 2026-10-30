@@ -1,0 +1,155 @@
+/* v2 theme: breakpoints, hover and reduced-motion overrides. */
+
+/* ---------- Адаптив ---------- */
+
+@media (max-width: 720px) {
+  .header__inner {
+    gap: var(--s2);
+  }
+
+  .nav {
+    margin: 0 -20px;
+    padding: 0 14px 6px;
+    gap: var(--s1);
+  }
+
+  .nav__link {
+    padding: 7px 10px;
+    font-size: 0.7rem;
+  }
+
+  .main {
+    padding-top: var(--s5);
+  }
+
+  .page-header {
+    margin-bottom: var(--s5);
+    padding-bottom: var(--s4);
+  }
+
+  .hero {
+    padding: var(--s5) var(--s4);
+    border-radius: var(--r-lg);
+  }
+
+  .race-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: var(--s4);
+    border-radius: var(--r-md);
+  }
+
+  .table th,
+  .table td {
+    padding: 9px 10px;
+  }
+
+  .table th:first-child,
+  .table td:first-child {
+    padding-left: 12px;
+  }
+
+  .table th:last-child,
+  .table td:last-child {
+    padding-right: 12px;
+  }
+
+  .stats {
+    grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  }
+
+  .stat {
+    padding: 10px 12px;
+  }
+
+  .stat__value {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .container {
+    padding-inline: 16px;
+  }
+
+  .nav {
+    margin: 0 -16px;
+    padding: 0 12px 6px;
+  }
+
+  .race-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .countdown {
+    width: 100%;
+    gap: var(--s1);
+  }
+
+  .countdown__box {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 4px 10px;
+  }
+
+  .countdown__value {
+    font-size: 1.55rem;
+  }
+
+  .legend {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header h1 {
+    font-size: 1.9rem;
+  }
+
+  .table {
+    font-size: 0.84rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 8px;
+  }
+
+  .table th {
+    letter-spacing: 0.05em;
+  }
+
+  .table th:first-child,
+  .table td:first-child {
+    padding-left: 10px;
+  }
+
+  .table th:last-child,
+  .table td:last-child {
+    padding-right: 10px;
+  }
+}
+
+@media (hover: hover) {
+  .race-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .race-card:hover {
+    transform: none;
+  }
+}
+

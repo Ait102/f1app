@@ -1,0 +1,110 @@
+/* Circuit outline panel (data: F1DB). */
+
+/* Circuit outline (data: F1DB, CC BY 4.0) */
+
+.circuit-panel {
+  margin-bottom: var(--s5);
+}
+
+.circuit-panel__body {
+  display: grid;
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  gap: var(--s5);
+  align-items: center;
+  margin-top: var(--s4);
+}
+
+.circuit-map {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  padding: var(--s4);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background:
+    radial-gradient(circle at 50% 46%, rgba(225, 6, 0, 0.08), transparent 62%),
+    repeating-linear-gradient(0deg, transparent 0 23px, rgba(255, 255, 255, 0.025) 23px 24px),
+    repeating-linear-gradient(90deg, transparent 0 23px, rgba(255, 255, 255, 0.025) 23px 24px),
+    var(--surface-2);
+}
+
+.circuit-map__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.circuit-map__glow,
+.circuit-map__line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.circuit-map__glow {
+  stroke: var(--accent);
+  stroke-width: 7;
+  opacity: 0.13;
+}
+
+.circuit-map__line {
+  stroke: var(--text);
+  stroke-width: 2.2;
+  stroke-dasharray: 1;
+  animation: circuit-draw 1100ms var(--ease) both;
+}
+
+@keyframes circuit-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.circuit-panel__meta .stats {
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: var(--s3);
+  margin-bottom: var(--s3);
+}
+
+.circuit-panel__meta .stat {
+  padding: var(--s4);
+}
+
+.circuit-panel__meta .stat__value {
+  font-size: 1.6rem;
+}
+
+@media (max-width: 720px) {
+  .circuit-panel__body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s4);
+  }
+
+  .circuit-panel__meta .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s2);
+    margin-bottom: var(--s2);
+  }
+
+  .circuit-panel__meta .stat {
+    padding: var(--s2) var(--s3);
+  }
+
+  .circuit-panel__meta .stat__value {
+    font-size: 1.1rem;
+  }
+
+  .circuit-map {
+    padding: var(--s2);
+    max-width: 320px;
+    margin-inline: auto;
+  }
+}
+

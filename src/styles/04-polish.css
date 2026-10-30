@@ -1,0 +1,172 @@
+/* Visual polish: hero, podium colours, points bars, calendar accents. */
+
+/* ===== Visual polish ===== */
+
+/* Subtle glow behind the page */
+
+.eyebrow::before {
+  transform: skewX(-20deg);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1040px) {
+  .grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .grid-3 > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 680px) {
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Hero: next race */
+
+.hero::after {
+  content: '';
+  position: absolute;
+  right: -60px;
+  top: -40px;
+  width: 260px;
+  height: 140%;
+  background: linear-gradient(90deg, transparent, rgba(225, 6, 0, 0.35));
+  transform: skewX(-20deg);
+  pointer-events: none;
+}
+
+.hero__inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.hero__main {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.hero__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hero__name {
+  display: block;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.countdown {
+  display: flex;
+}
+
+.countdown__box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.countdown__value {
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown__label {
+  text-transform: uppercase;
+}
+
+/* Podium colours */
+.pos--1 { color: var(--gold); }
+.pos--2 { color: var(--silver); }
+.pos--3 { color: var(--bronze); }
+
+/* Leader lists with a faint relative bar */
+.leaders li {
+  position: relative;
+}
+
+.leaders li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: var(--bar, 0%);
+  pointer-events: none;
+}
+
+.leaders li > * {
+  position: relative;
+}
+
+/* Points with a thin bar in standings tables */
+.pts {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  min-width: 64px;
+}
+
+.pts__track {
+  width: 64px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.pts__fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #a00400, var(--accent));
+}
+
+/* Table polish */
+
+.table td .pos {
+  display: inline-block;
+}
+
+/* Calendar */
+
+.race-card::after {
+  content: attr(data-round);
+  position: absolute;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.race-card--completed:hover {
+  opacity: 1;
+}
+
+/* Header logo glow */
+.logo:hover .logo__mark {
+  box-shadow: 0 0 18px rgba(225, 6, 0, 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .race-card,
+  .table tbody tr {
+    transition: none;
+  }
+}
+

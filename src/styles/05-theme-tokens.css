@@ -1,0 +1,81 @@
+/* v2 theme: tokens and base. The v2 layer comes last and overrides earlier rules. */
+
+/* ==========================================================================
+   v2 — «технический паддок»: воздух, волосяные линии, крупная сжатая
+   типографика, красный только как сигнал, цвета команд — как данные.
+   Слой идёт последним и перекрывает ранние правила; классы и тексты,
+   на которые опираются тесты, сохранены.
+   ========================================================================== */
+
+:root {
+  --bg: #0a0b0f;
+  --surface: #111319;
+  --surface-2: #171a22;
+  --surface-3: #1e222c;
+  --border: #242833;
+  --border-strong: #343a48;
+  --text: #f4f5f7;
+  --muted: #a4abb9;
+  --accent-text: #ff6f67;
+  --radius: 16px;
+
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 26px;
+  --r-pill: 999px;
+
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --t-fast: 120ms;
+  --t: 180ms;
+  --t-slow: 240ms;
+
+  --sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 46%);
+  --lift: 0 26px 48px -32px rgba(0, 0, 0, 0.9);
+}
+
+body {
+  background:
+    radial-gradient(920px 460px at 82% -14%, rgba(225, 6, 0, 0.14), transparent 64%),
+    radial-gradient(760px 420px at -8% 0%, rgba(90, 176, 255, 0.055), transparent 60%),
+    linear-gradient(180deg, #0b0d12 0%, var(--bg) 46%);
+  background-repeat: no-repeat;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.015em;
+}
+
+h1 {
+  font-style: normal;
+  letter-spacing: -0.025em;
+}
+
+a {
+  text-underline-offset: 3px;
+  transition: color var(--t-fast) var(--ease);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.container {
+  max-width: 1200px;
+  padding-inline: 20px;
+}
+

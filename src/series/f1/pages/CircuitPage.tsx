@@ -1,9 +1,10 @@
 import { Link, useParams } from 'react-router-dom';
 
-import { DriverCell, Moment, Stat, TeamCell } from '../components/bits';
+import { DataState, ErrorBox, Loading } from '../../../components/DataState';
+import { SortableTable, type Column } from '../../../components/SortableTable';
+import { Moment, Stat } from '../../../components/ui';
+import { DriverCell, TeamCell } from '../components/bits';
 import { CircuitPanel } from '../components/CircuitMap';
-import { DataState, ErrorBox, Loading } from '../components/DataState';
-import { SortableTable, type Column } from '../components/SortableTable';
 import type { RaceWithResults } from '../domain/types';
 import { useCircuit, useCircuitWinners, useRaces } from '../hooks/data';
 import { ID_RE, NotFoundBlock, PageHeader, SeasonGuard } from './common';

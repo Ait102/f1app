@@ -1,4 +1,5 @@
-import type { RaceEvent, Session } from './types';
+import { sessionStart } from '../../../lib/format';
+import type { RaceEvent } from './types';
 
 export type RaceStatus = 'completed' | 'live' | 'upcoming' | 'awaiting' | 'unknown';
 
@@ -12,14 +13,6 @@ export const STATUS_LABELS: Record<RaceStatus, string> = {
 
 /** A race weekend is considered over this long after the race start. */
 const RACE_DURATION_MS = 3 * 60 * 60 * 1000;
-
-export function sessionStart(s: Pick<Session, 'date' | 'time'>): Date | null {
-  if (!s.date) return null;
-  const d = new Date(
-    s.time ? `${s.date}T${s.time.endsWith('Z') ? s.time : s.time + 'Z'}` : `${s.date}T00:00:00Z`,
-  );
-  return Number.isNaN(d.getTime()) ? null : d;
-}
 
 /**
  * Status is derived only from reliable signals:

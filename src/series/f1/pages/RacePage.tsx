@@ -1,25 +1,18 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-import {
-  CircuitLink,
-  DriverCell,
-  Moment,
-  posClass,
-  SearchBox,
-  StatusBadge,
-  TeamCell,
-} from '../components/bits';
+import { DataState, ErrorBox, Loading, MetaLine } from '../../../components/DataState';
+import { SortableTable, type Column } from '../../../components/SortableTable';
+import { Moment, posClass, SearchBox } from '../../../components/ui';
+import { useNow } from '../../../hooks/useNow';
+import { formatPoints } from '../../../lib/format';
+import { CircuitLink, DriverCell, StatusBadge, TeamCell } from '../components/bits';
 import { CircuitPanel } from '../components/CircuitMap';
-import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
-import { SortableTable, type Column } from '../components/SortableTable';
-import { formatPoints } from '../domain/format';
 import { matchesDriver } from '../domain/search';
 import { raceStatus, type RaceStatus } from '../domain/status';
 import type { QualifyingResult, RaceEvent, RaceResult } from '../domain/types';
 import { useDriverStandings, useQualifying, useRaceResults, useRaces, useSprint } from '../hooks/data';
 import { useFavorites } from '../hooks/useFavorites';
-import { useNow } from '../hooks/useNow';
 import { PageHeader, SeasonGuard } from './common';
 
 export function RacePage() {

@@ -1,11 +1,11 @@
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
 
 import { ApiError } from '../api/client';
-import type { DataMeta } from '../domain/types';
+import type { DataMeta } from '../api/types';
 import { useResource } from '../hooks/useResource';
-import { leaderShare } from './bits';
 import { DataState } from './DataState';
 import { SortableTable, sortRows, type Column } from './SortableTable';
+import { leaderShare } from './ui';
 
 type Row = { id: string; pos: number | null; pts: number | null };
 const rows: Row[] = [

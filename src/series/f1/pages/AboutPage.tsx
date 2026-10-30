@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
-import { API_BASE } from '../api/client';
-import { localTimeZone, utcOffsetLabel } from '../domain/format';
+import { localTimeZone, utcOffsetLabel } from '../../../lib/format';
+import { JOLPICA_BASE } from '../api/jolpica';
 import { PageHeader } from './common';
 
 export function AboutPage() {
@@ -19,7 +19,7 @@ export function AboutPage() {
         <a href="https://github.com/jolpica/jolpica-f1" target="_blank" rel="noreferrer">
           Jolpica-F1
         </a>{' '}
-        — открытого API, совместимого с Ergast. Базовый адрес: <code>{API_BASE}/</code>. Это{' '}
+        — открытого API, совместимого с Ergast. Базовый адрес: <code>{JOLPICA_BASE}/</code>. Это{' '}
         <strong>не официальный</strong> API Formula 1; для сверки используйте{' '}
         <a href="https://www.formula1.com/" target="_blank" rel="noreferrer">
           formula1.com

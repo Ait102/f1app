@@ -1,4 +1,4 @@
-// Generates src/data/circuits/{map.ts,shapes/*.ts} from F1DB (https://github.com/f1db/f1db, CC BY 4.0).
+// Generates src/series/f1/data/circuits/{map.ts,shapes/*.ts} from F1DB (https://github.com/f1db/f1db, CC BY 4.0).
 //
 // Run once, the result is committed so the app builds offline:
 //   node scripts/build-circuits.mjs
@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const REPO = 'https://raw.githubusercontent.com/f1db/f1db/main';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const OUT_DIR = resolve(ROOT, 'src/data/circuits');
+const OUT_DIR = resolve(ROOT, 'src/series/f1/data/circuits');
 
 // Jolpica circuitId -> F1DB circuit slug. Jolpica and F1DB name the same track
 // differently often enough that this table is written by hand.

@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-import { localTimeZone, utcOffsetLabel } from '../domain/format';
-import { rememberedSeason, rememberSeason, useSeasonParam, useSeasons } from '../hooks/data';
+import { localTimeZone, utcOffsetLabel } from '../lib/format';
+import { rememberedSeason, rememberSeason, useSeasonParam, useSeasons } from '../series/f1/hooks/data';
 
 function SeasonSelect({ season }: { season: number | null }) {
   const seasons = useSeasons();

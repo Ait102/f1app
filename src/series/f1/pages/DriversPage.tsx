@@ -1,8 +1,9 @@
 import { useState } from 'react';
 
-import { DriverCell, PointsWithBar, posClass, SearchBox } from '../components/bits';
-import { DataState } from '../components/DataState';
-import { SortableTable, type Column } from '../components/SortableTable';
+import { DataState } from '../../../components/DataState';
+import { SortableTable, type Column } from '../../../components/SortableTable';
+import { PointsWithBar, posClass, SearchBox } from '../../../components/ui';
+import { DriverCell } from '../components/bits';
 import { matchesDriver } from '../domain/search';
 import type { DriverStanding } from '../domain/types';
 import { useDriverStandings } from '../hooks/data';

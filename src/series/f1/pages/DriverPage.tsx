@@ -1,13 +1,14 @@
 import { Link, useParams } from 'react-router-dom';
 
-import { FavButton, Stat, TeamCell } from '../components/bits';
-import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
-import { SortableTable, type Column } from '../components/SortableTable';
-import { formatDate, formatPoints } from '../domain/format';
+import { DataState, ErrorBox, Loading, MetaLine } from '../../../components/DataState';
+import { SortableTable, type Column } from '../../../components/SortableTable';
+import { Stat } from '../../../components/ui';
+import { useNow } from '../../../hooks/useNow';
+import { formatDate, formatPoints } from '../../../lib/format';
+import { FavButton, TeamCell } from '../components/bits';
 import { ageAt, driverName } from '../domain/mappers';
 import type { RaceWithResults } from '../domain/types';
 import { useDriver, useDriverCareer, useDriverSeasonResults, useDriverStandings } from '../hooks/data';
-import { useNow } from '../hooks/useNow';
 import { ID_RE, NotFoundBlock, PageHeader, SeasonGuard } from './common';
 
 export function DriverPage() {

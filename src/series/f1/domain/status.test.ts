@@ -1,4 +1,4 @@
-import { formatDate, formatMoment, formatPoints, utcOffsetLabel } from './format';
+import { formatDate, formatMoment, formatPoints, utcOffsetLabel } from '../../../lib/format';
 import { findNextRace, raceStatus } from './status';
 import type { RaceEvent } from './types';
 

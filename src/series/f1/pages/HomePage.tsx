@@ -1,14 +1,15 @@
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 
-import { DriverCell, leaderShare, Moment, posClass, StatusBadge, TeamCell } from '../components/bits';
-import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
-import { countdownParts, formatPoints } from '../domain/format';
-import { findNextRace, raceStatus, sessionStart } from '../domain/status';
+import { DataState, ErrorBox, Loading, MetaLine } from '../../../components/DataState';
+import { leaderShare, Moment, posClass } from '../../../components/ui';
+import { useNow } from '../../../hooks/useNow';
+import { countdownParts, formatPoints, sessionStart } from '../../../lib/format';
+import { DriverCell, StatusBadge, TeamCell } from '../components/bits';
+import { findNextRace, raceStatus } from '../domain/status';
 import type { RaceEvent } from '../domain/types';
 import { useConstructorStandings, useDriverStandings, useRaceResults, useRaces } from '../hooks/data';
 import { useFavorites } from '../hooks/useFavorites';
-import { useNow } from '../hooks/useNow';
 import { PageHeader, SeasonGuard } from './common';
 
 export function HomePage() {

@@ -1,6 +1,13 @@
-import { sessionStart } from './status';
-
 const LOCALE = 'ru-RU';
+
+/** Date (YYYY-MM-DD) plus optional UTC time (HH:MM:SS[Z]) as a Date; date-only means midnight UTC. */
+export function sessionStart(s: { date: string | null; time: string | null }): Date | null {
+  if (!s.date) return null;
+  const d = new Date(
+    s.time ? `${s.date}T${s.time.endsWith('Z') ? s.time : s.time + 'Z'}` : `${s.date}T00:00:00Z`,
+  );
+  return Number.isNaN(d.getTime()) ? null : d;
+}
 
 export function localTimeZone(): string {
   try {

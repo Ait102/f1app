@@ -1,10 +1,7 @@
 // The only module that talks HTTP. Handles timeouts, HTTP errors, 429,
 // broken JSON, an in-memory cache and a localStorage fallback with the last
 // successful response.
-import type { DataMeta, Fetched } from '../domain/types';
-
-export const API_BASE = 'https://api.jolpi.ca/ergast/f1';
-export const PROVIDER = 'Jolpica-F1';
+import type { DataMeta, Fetched } from './types';
 
 export type ApiErrorKind = 'network' | 'timeout' | 'http' | 'rate-limit' | 'parse';
 
@@ -60,9 +57,12 @@ export interface ClientOptions {
   storage?: Storage | null;
   timeoutMs?: number;
   ttlMs?: number;
-  /** Minimal gap between request starts; Jolpica allows ~4 req/s. */
+  /** Minimal gap between request starts, to respect the source's rate limit. */
   minIntervalMs?: number;
-  baseUrl?: string;
+  /** Base URL of the data source, e.g. https://api.jolpi.ca/ergast/f1 */
+  baseUrl: string;
+  /** Source name shown next to the data, e.g. "Jolpica-F1". */
+  provider: string;
 }
 
 export interface GetOptions {
@@ -80,14 +80,14 @@ function defaultStorage(): Storage | null {
   }
 }
 
-export function createClient(options: ClientOptions = {}) {
+export function createClient(options: ClientOptions) {
   const fetchFn = options.fetchFn ?? ((...args: Parameters<typeof fetch>) => fetch(...args));
   const now = options.now ?? (() => Date.now());
   const storage = options.storage === undefined ? defaultStorage() : options.storage;
   const timeoutMs = options.timeoutMs ?? 12_000;
   const ttlMs = options.ttlMs ?? 10 * 60 * 1000;
   const minIntervalMs = options.minIntervalMs ?? 260;
-  const baseUrl = options.baseUrl ?? API_BASE;
+  const { baseUrl, provider } = options;
 
   const memory = new Map<string, CacheEntry>();
   const inflight = new Map<string, Promise<Fetched<unknown>>>();
@@ -124,7 +124,7 @@ export function createClient(options: ClientOptions = {}) {
 
   function meta(url: string, fetchedAt: number, stale: boolean, error?: unknown): DataMeta {
     return {
-      provider: PROVIDER,
+      provider,
       sourceUrl: url,
       fetchedAt: new Date(fetchedAt).toISOString(),
       stale,
@@ -210,5 +210,3 @@ export function createClient(options: ClientOptions = {}) {
 }
 
 export type ApiClient = ReturnType<typeof createClient>;
-
-export const client = createClient();

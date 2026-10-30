@@ -1,5 +1,5 @@
+import { createJolpica } from '../series/f1/api/jolpica';
 import { ApiError, createClient, describeError, parseRetryAfter } from './client';
-import { createJolpica } from './jolpica';
 
 function memoryStorage(): Storage {
   const m = new Map<string, string>();
@@ -18,7 +18,7 @@ function memoryStorage(): Storage {
 const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
 const MR = (extra: object = {}) => ({ MRData: { total: '0', ...extra } });
 
-function setup(fetchFn: typeof fetch, extra: Parameters<typeof createClient>[0] = {}) {
+function setup(fetchFn: typeof fetch, extra: Partial<Parameters<typeof createClient>[0]> = {}) {
   let t = 1_000_000;
   const storage = memoryStorage();
   const client = createClient({
@@ -26,6 +26,7 @@ function setup(fetchFn: typeof fetch, extra: Parameters<typeof createClient>[0] 
     storage,
     minIntervalMs: 0,
     baseUrl: 'https://x',
+    provider: 'Jolpica-F1',
     now: () => t,
     ...extra,
   });
@@ -113,7 +114,13 @@ describe('client.get', () => {
     expect(r1.meta.staleReason).toMatch(/соединения/);
 
     // New session: localStorage copy.
-    const fresh = createClient({ fetchFn: f, storage, minIntervalMs: 0, baseUrl: 'https://x' });
+    const fresh = createClient({
+      fetchFn: f,
+      storage,
+      minIntervalMs: 0,
+      baseUrl: 'https://x',
+      provider: 'Jolpica-F1',
+    });
     const r2 = await fresh.get('/a');
     expect(r2.meta.stale).toBe(true);
     expect(r2.data).toEqual(MR({ x: 1 }));

@@ -118,18 +118,3 @@ export interface CareerCounts {
   wins: number | null;
   starts: number | null;
 }
-
-export interface DataMeta {
-  provider: string;
-  sourceUrl: string;
-  /** ISO time of the last successful fetch. */
-  fetchedAt: string;
-  /** True when live fetch failed and saved data is shown instead. */
-  stale: boolean;
-  staleReason?: string;
-}
-
-export interface Fetched<T> {
-  data: T;
-  meta: DataMeta;
-}

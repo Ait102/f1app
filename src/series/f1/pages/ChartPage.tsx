@@ -1,16 +1,16 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { describeError } from '../api/client';
+import { describeError } from '../../../api/client';
+import { ErrorBox, Loading, MetaLine } from '../../../components/DataState';
+import { useResource } from '../../../hooks/useResource';
+import { formatPoints } from '../../../lib/format';
 import { jolpica } from '../api/jolpica';
 import { DriverCell } from '../components/bits';
-import { ErrorBox, Loading, MetaLine } from '../components/DataState';
 import { lineStyles, PointsChart } from '../components/PointsChart';
-import { formatPoints } from '../domain/format';
 import { buildProgress } from '../domain/progress';
 import { useDriverStandings, useRaces } from '../hooks/data';
 import { useFavorites } from '../hooks/useFavorites';
-import { useResource } from '../hooks/useResource';
 import { PageHeader, SeasonGuard } from './common';
 
 type TopN = 5 | 10 | 'all';

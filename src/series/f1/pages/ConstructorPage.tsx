@@ -1,9 +1,10 @@
 import { Link, useParams } from 'react-router-dom';
 
-import { DriverCell, FavButton, Stat, teamColor } from '../components/bits';
-import { DataState, ErrorBox, Loading } from '../components/DataState';
-import { SortableTable, type Column } from '../components/SortableTable';
-import { formatPoints } from '../domain/format';
+import { DataState, ErrorBox, Loading } from '../../../components/DataState';
+import { SortableTable, type Column } from '../../../components/SortableTable';
+import { Stat } from '../../../components/ui';
+import { formatPoints } from '../../../lib/format';
+import { DriverCell, FavButton, teamColor } from '../components/bits';
 import type { Driver, RaceWithResults } from '../domain/types';
 import {
   useConstructor,

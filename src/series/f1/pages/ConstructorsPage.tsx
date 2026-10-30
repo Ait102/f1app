@@ -1,8 +1,9 @@
 import { useState } from 'react';
 
-import { PointsWithBar, posClass, SearchBox, TeamCell } from '../components/bits';
-import { DataState } from '../components/DataState';
-import { SortableTable, type Column } from '../components/SortableTable';
+import { DataState } from '../../../components/DataState';
+import { SortableTable, type Column } from '../../../components/SortableTable';
+import { PointsWithBar, posClass, SearchBox } from '../../../components/ui';
+import { TeamCell } from '../components/bits';
 import type { ConstructorStanding } from '../domain/types';
 import { useConstructorStandings } from '../hooks/data';
 import { useFavorites } from '../hooks/useFavorites';

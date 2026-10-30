@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
+import { Stat } from '../../../components/ui';
 import { eraLabel, loadCircuit, type CircuitLayout } from '../data/circuits';
-import { Stat } from './bits';
 
 const FULL_BOX = { x: 0, y: 0, w: 500, h: 500 };
 

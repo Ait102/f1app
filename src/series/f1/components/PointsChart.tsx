@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 
-import { formatPoints } from '../domain/format';
+import { formatPoints } from '../../../lib/format';
 import { niceAxis, type ProgressSeries } from '../domain/progress';
 import { teamColor } from './bits';
 

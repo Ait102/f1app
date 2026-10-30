@@ -3,12 +3,18 @@
 // Run: npm run test:contract
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { createClient } from '../api/client';
-import { createJolpica } from '../api/jolpica';
+import { createClient } from '../../../api/client';
+import { createJolpica, JOLPICA_BASE, JOLPICA_PROVIDER } from '../api/jolpica';
 import type { RaceEvent } from '../domain/types';
 
 // Slower pace than the app (≈2 req/s), no browser storage.
-const client = createClient({ storage: null, minIntervalMs: 500, timeoutMs: 20_000 });
+const client = createClient({
+  baseUrl: JOLPICA_BASE,
+  provider: JOLPICA_PROVIDER,
+  storage: null,
+  minIntervalMs: 500,
+  timeoutMs: 20_000,
+});
 const api = createJolpica(client);
 
 type Rec = Record<string, unknown>;

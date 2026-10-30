@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['src/contract/**/*.contract.ts'],
+    include: ['src/**/*.contract.ts'],
     testTimeout: 60_000,
     hookTimeout: 60_000,
     // One file, sequential: stay well inside the API rate limit.

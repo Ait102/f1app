@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 
+import { useResource } from '../../../hooks/useResource';
 import { jolpica } from '../api/jolpica';
-import { useResource } from './useResource';
 
 export function useSeasonParam(): number | null {
   const { season } = useParams();

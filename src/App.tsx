@@ -3,17 +3,17 @@ import { HashRouter, Link, Navigate, Route, Routes, useLocation } from 'react-ro
 
 import { ErrorBox, Loading } from './components/DataState';
 import { Layout } from './components/Layout';
-import { rememberedSeason, useSeasons } from './hooks/data';
-import { AboutPage } from './pages/AboutPage';
-import { CalendarPage } from './pages/CalendarPage';
-import { ChartPage } from './pages/ChartPage';
-import { CircuitPage } from './pages/CircuitPage';
-import { ConstructorPage } from './pages/ConstructorPage';
-import { ConstructorsPage } from './pages/ConstructorsPage';
-import { DriverPage } from './pages/DriverPage';
-import { DriversPage } from './pages/DriversPage';
-import { HomePage } from './pages/HomePage';
-import { RacePage } from './pages/RacePage';
+import { rememberedSeason, useSeasons } from './series/f1/hooks/data';
+import { AboutPage } from './series/f1/pages/AboutPage';
+import { CalendarPage } from './series/f1/pages/CalendarPage';
+import { ChartPage } from './series/f1/pages/ChartPage';
+import { CircuitPage } from './series/f1/pages/CircuitPage';
+import { ConstructorPage } from './series/f1/pages/ConstructorPage';
+import { ConstructorsPage } from './series/f1/pages/ConstructorsPage';
+import { DriverPage } from './series/f1/pages/DriverPage';
+import { DriversPage } from './series/f1/pages/DriversPage';
+import { HomePage } from './series/f1/pages/HomePage';
+import { RacePage } from './series/f1/pages/RacePage';
 
 function RootRedirect() {
   const seasons = useSeasons();

@@ -1,4 +1,6 @@
 // Jolpica-F1 endpoints mapped to the internal model.
+import { ApiError, createClient, type ApiClient, type GetOptions } from '../../../api/client';
+import type { DataMeta, Fetched } from '../../../api/types';
 import {
   arr,
   mapCircuit,
@@ -22,11 +24,9 @@ import type {
   Circuit,
   Constructor,
   ConstructorStanding,
-  DataMeta,
   Driver,
   DriverProfile,
   DriverStanding,
-  Fetched,
   QualifyingResult,
   RaceEvent,
   RaceResult,
@@ -34,7 +34,12 @@ import type {
   Season,
   Standings,
 } from '../domain/types';
-import { ApiError, client as defaultClient, type ApiClient, type GetOptions } from './client';
+
+export const JOLPICA_BASE = 'https://api.jolpi.ca/ergast/f1';
+export const JOLPICA_PROVIDER = 'Jolpica-F1';
+
+/** Shared client for the app; Jolpica allows ~4 requests per second without a token. */
+const jolpicaClient = createClient({ baseUrl: JOLPICA_BASE, provider: JOLPICA_PROVIDER, minIntervalMs: 260 });
 
 const PAGE_LIMIT = 100;
 const MAX_PAGES = 20;
@@ -99,7 +104,7 @@ async function count(api: ApiClient, path: string, opts?: GetOptions): Promise<F
   return { data: num(rec(rec(res.data).MRData).total), meta: res.meta };
 }
 
-export function createJolpica(api: ApiClient = defaultClient) {
+export function createJolpica(api: ApiClient = jolpicaClient) {
   return {
     async getDriver(id: string, opts?: GetOptions): Promise<Fetched<DriverProfile | null>> {
       const res = await api.get(`${idPath('drivers', id)}/`, opts);

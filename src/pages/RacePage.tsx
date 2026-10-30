@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
 import { CircuitLink, DriverCell, Moment, SearchBox, StatusBadge, TeamCell, matchesDriver, posClass } from '../components/bits';
+import { CircuitPanel } from '../components/CircuitMap';
 import { SortableTable, type Column } from '../components/SortableTable';
 import { formatPoints } from '../domain/format';
 import { raceStatus, type RaceStatus } from '../domain/status';
@@ -59,7 +60,7 @@ function Race({ season }: { season: number }) {
           ) : (
             !race.locality && !race.country && 'Трасса не указана'
           )}
-          {[race.circuitName ? '' : null, race.locality, race.country].filter((x) => x !== null).join(' · ')}
+          {[race.locality, race.country].filter(Boolean).join(' · ')}
         </p>
         {race.url && (
           <p>
@@ -69,6 +70,8 @@ function Race({ season }: { season: number }) {
           </p>
         )}
       </PageHeader>
+
+      <CircuitPanel circuitId={race.circuitId} name={race.circuitName} />
 
       <div className="race-layout">
         <aside className="card schedule">

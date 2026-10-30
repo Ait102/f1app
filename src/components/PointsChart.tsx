@@ -81,6 +81,14 @@ export function PointsChart({ rounds, series, roundLabel, highlight }: Props) {
   for (let v = 0; v <= axis.max + 1e-9; v += axis.step) ticks.push(v);
   const labelEvery = Math.max(1, Math.ceil(n / Math.max(4, Math.floor(W / 60))));
 
+  // Одна точка не рисует линию — помечаем её маркером, чтобы серия была видна.
+  const markers = series.flatMap((s) => {
+    const known = s.points.filter((p): p is number => p !== null);
+    if (known.length !== 1) return [];
+    const i = s.points.findIndex((p) => p !== null);
+    return [{ id: s.driver.id, cx: x(i), cy: y(known[0]), color: styles.get(s.driver.id)!.color }];
+  });
+
   const hovered =
     hover === null
       ? []
@@ -136,6 +144,9 @@ export function PointsChart({ rounds, series, roundLabel, highlight }: Props) {
             />
           );
         })}
+        {markers.map((m) => (
+          <circle key={`m-${m.id}`} className="chart__dot" cx={m.cx} cy={m.cy} r={4.5} fill={m.color} />
+        ))}
         {hovered.map(({ s, p }) => (
           <circle key={s.driver.id} cx={x(hover!)} cy={y(p)} r={4} fill={styles.get(s.driver.id)!.color} />
         ))}

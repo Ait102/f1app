@@ -83,7 +83,10 @@ export function SortableTable<T>({ columns, rows, rowKey, caption, rowClassName 
                       <span className={c.abbr ? 'th-full' : undefined}>{c.header}</span>
                       {c.abbr && <span className="th-abbr" aria-hidden="true">{c.abbr}</span>}
                       <span className="th-sort__icon" aria-hidden="true">
-                        {active ? (sort!.dir === 'asc' ? '▲' : '▼') : '↕'}
+                        <svg viewBox="0 0 8 12" width="8" height="12" focusable="false">
+                          <path d="M4 0.7 7.5 4.6H0.5z" fill="currentColor" />
+                          <path d="M4 11.3 0.5 7.4h7z" fill="currentColor" />
+                        </svg>
                       </span>
                     </button>
                   ) : (

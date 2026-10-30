@@ -74,6 +74,17 @@ export function AboutPage() {
           Jolpica-F1 поддерживается волонтёрами и не гарантирует доступность и точность данных. Официальные результаты —
           на <a href="https://www.formula1.com/" target="_blank" rel="noreferrer">formula1.com</a>.
         </li>
+        <li>
+          Схемы трасс (контуры) взяты из проекта{' '}
+          <a href="https://github.com/f1db/f1db" target="_blank" rel="noreferrer">
+            F1DB
+          </a>{' '}
+          и распространяются по лицензии{' '}
+          <a href="https://creativecommons.org/licenses/by/4.0/deed.ru" target="_blank" rel="noreferrer">
+            CC BY 4.0
+          </a>{' '}
+          с указанием источника. Длина, число поворотов и направление движения — оттуда же.
+        </li>
         <li>Formula 1, F1 и связанные знаки принадлежат Formula One Licensing B.V.; проект с ними не связан.</li>
       </ul>
     </section>

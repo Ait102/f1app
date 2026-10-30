@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
-import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
+import { DataState, ErrorBox, Loading } from '../components/DataState';
 import { DriverCell, Moment, Stat, TeamCell } from '../components/bits';
+import { CircuitPanel } from '../components/CircuitMap';
 import { SortableTable, type Column } from '../components/SortableTable';
 import type { RaceWithResults } from '../domain/types';
 import { useCircuit, useCircuitWinners, useRaces } from '../hooks/data';
@@ -75,6 +76,8 @@ function CircuitBody({ season, id }: { season: number; id: string }) {
         </p>
       </PageHeader>
 
+      <CircuitPanel circuitId={c.id} name={c.name} />
+
       <div className="grid-2">
         <article className="card">
           <h2 className="card__title">Сезон {season}</h2>
@@ -114,7 +117,6 @@ function CircuitBody({ season, id }: { season: number; id: string }) {
       <DataState state={winners} isEmpty={(w) => w.length === 0} emptyText="Источник не содержит гонок на этой трассе.">
         {(w) => <SortableTable columns={winnerColumns} rows={w} rowKey={(r) => `${r.race.seasonYear}-${r.race.round}`} caption={`Победители на трассе ${c.name}`} />}
       </DataState>
-      <MetaLine meta={circuit.meta} />
     </section>
   );
 }

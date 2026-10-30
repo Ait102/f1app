@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
+import { DataState, ErrorBox, Loading } from '../components/DataState';
 import { DriverCell, FavButton, Stat, teamColor } from '../components/bits';
 import { SortableTable, type Column } from '../components/SortableTable';
 import { formatPoints } from '../domain/format';
@@ -71,7 +71,6 @@ function ConstructorBody({ season, id }: { season: number; id: string }) {
       </div>
 
       <SeasonBlock season={season} id={id} />
-      <MetaLine meta={profile.meta} />
     </section>
   );
 }

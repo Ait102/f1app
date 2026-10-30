@@ -1,15 +1,7 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { useSeasonParam, useSeasons } from '../hooks/data';
 
-export function useNow(intervalMs = 30_000): Date {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), intervalMs);
-    return () => clearInterval(id);
-  }, [intervalMs]);
-  return now;
-}
+import { useSeasonParam, useSeasons } from '../hooks/data';
 
 /** Renders children only for a valid season that the source knows about. */
 export function SeasonGuard({ children }: { children: (season: number) => ReactNode }) {
@@ -59,7 +51,15 @@ export function NotFoundBlock({ title, season }: { title: string; season: number
   );
 }
 
-export function PageHeader({ eyebrow, title, children }: { eyebrow?: string; title: string; children?: ReactNode }) {
+export function PageHeader({
+  eyebrow,
+  title,
+  children,
+}: {
+  eyebrow?: string;
+  title: string;
+  children?: ReactNode;
+}) {
   return (
     <header className="page-header">
       {eyebrow && <p className="eyebrow">{eyebrow}</p>}

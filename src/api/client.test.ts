@@ -21,7 +21,14 @@ const MR = (extra: object = {}) => ({ MRData: { total: '0', ...extra } });
 function setup(fetchFn: typeof fetch, extra: Parameters<typeof createClient>[0] = {}) {
   let t = 1_000_000;
   const storage = memoryStorage();
-  const client = createClient({ fetchFn, storage, minIntervalMs: 0, baseUrl: 'https://x', now: () => t, ...extra });
+  const client = createClient({
+    fetchFn,
+    storage,
+    minIntervalMs: 0,
+    baseUrl: 'https://x',
+    now: () => t,
+    ...extra,
+  });
   return { client, storage, advance: (ms: number) => (t += ms) };
 }
 
@@ -60,7 +67,9 @@ describe('client.get', () => {
   });
 
   it('maps 429 with Retry-After', async () => {
-    const { client } = setup(vi.fn(async () => new Response('', { status: 429, headers: { 'Retry-After': '7' } })));
+    const { client } = setup(
+      vi.fn(async () => new Response('', { status: 429, headers: { 'Retry-After': '7' } })),
+    );
     const err = await client.get('/a').catch((e) => e);
     expect(err).toBeInstanceOf(ApiError);
     expect(err.kind).toBe('rate-limit');
@@ -83,7 +92,9 @@ describe('client.get', () => {
   it('times out', async () => {
     const hanging = vi.fn(
       (_url: RequestInfo | URL, init?: RequestInit) =>
-        new Promise<Response>((_, reject) => init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')))),
+        new Promise<Response>((_, reject) =>
+          init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError'))),
+        ),
     ) as unknown as typeof fetch;
     const { client } = setup(hanging, { timeoutMs: 20 });
     await expect(client.get('/a')).rejects.toMatchObject({ kind: 'timeout' });
@@ -120,11 +131,20 @@ describe('parseRetryAfter', () => {
 
 describe('pagination', () => {
   it('loads all pages of standings', async () => {
-    const row = (i: number) => ({ position: String(i), points: '1', Driver: { driverId: `d${i}`, familyName: `D${i}` } });
+    const row = (i: number) => ({
+      position: String(i),
+      points: '1',
+      Driver: { driverId: `d${i}`, familyName: `D${i}` },
+    });
     const f = vi.fn(async (url: RequestInfo | URL) => {
       const offset = Number(new URL(String(url)).searchParams.get('offset'));
       const rows = Array.from({ length: offset === 0 ? 100 : 5 }, (_, i) => row(offset + i + 1));
-      return ok({ MRData: { total: '105', StandingsTable: { StandingsLists: [{ round: '18', DriverStandings: rows }] } } });
+      return ok({
+        MRData: {
+          total: '105',
+          StandingsTable: { StandingsLists: [{ round: '18', DriverStandings: rows }] },
+        },
+      });
     }) as unknown as typeof fetch;
     const { client } = setup(f);
     const api = createJolpica(client);
@@ -158,13 +178,29 @@ describe('profile endpoints', () => {
 
 describe('standings progress', () => {
   const page = (round: string) =>
-    ok({ MRData: { total: '1', StandingsTable: { StandingsLists: [{ round, DriverStandings: [{ position: '1', points: '25', Driver: { driverId: 'a', familyName: 'A' } }] }] } } });
+    ok({
+      MRData: {
+        total: '1',
+        StandingsTable: {
+          StandingsLists: [
+            {
+              round,
+              DriverStandings: [{ position: '1', points: '25', Driver: { driverId: 'a', familyName: 'A' } }],
+            },
+          ],
+        },
+      },
+    });
 
   it('loads every round and reports progress', async () => {
-    const f = vi.fn(async (url: RequestInfo | URL) => page(String(url).match(/2026\/(\d+)\//)![1])) as unknown as typeof fetch;
+    const f = vi.fn(async (url: RequestInfo | URL) =>
+      page(String(url).match(/2026\/(\d+)\//)![1]),
+    ) as unknown as typeof fetch;
     const { client } = setup(f);
     const seen: number[] = [];
-    const res = await createJolpica(client).getStandingsProgress(2026, 3, { onProgress: (d) => seen.push(d) });
+    const res = await createJolpica(client).getStandingsProgress(2026, 3, {
+      onProgress: (d) => seen.push(d),
+    });
     expect(res.data.rounds.map((r) => r.round)).toEqual([1, 2, 3]);
     expect(res.data.failed).toEqual([]);
     expect(seen).toEqual([1, 2, 3]);

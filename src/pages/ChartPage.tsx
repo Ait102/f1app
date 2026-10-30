@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+
 import { describeError } from '../api/client';
 import { jolpica } from '../api/jolpica';
-import { ErrorBox, Loading, MetaLine } from '../components/DataState';
 import { DriverCell } from '../components/bits';
-import { PointsChart, lineStyles } from '../components/PointsChart';
+import { ErrorBox, Loading, MetaLine } from '../components/DataState';
+import { lineStyles, PointsChart } from '../components/PointsChart';
 import { formatPoints } from '../domain/format';
 import { buildProgress } from '../domain/progress';
 import { useDriverStandings, useRaces } from '../hooks/data';
@@ -50,7 +51,10 @@ function ChartBody({ season, lastRound }: { season: number; lastRound: number })
     return jolpica.getStandingsProgress(season, lastRound, { force, onProgress: (d) => setDone(d) });
   });
 
-  const progress = useMemo(() => (prog.status === 'success' ? buildProgress(prog.data.rounds) : null), [prog]);
+  const progress = useMemo(
+    () => (prog.status === 'success' ? buildProgress(prog.data.rounds) : null),
+    [prog],
+  );
 
   if (prog.status === 'loading') {
     return (
@@ -70,16 +74,14 @@ function ChartBody({ season, lastRound }: { season: number; lastRound: number })
   if (failed.length > 0 || !progress) {
     // ТЗ: draw the chart only when every round is available and comparable.
     return (
-      <>
-        <div className="state state--error" role="alert">
-          <p className="state__title">График не построен: нет данных по части этапов</p>
-          <p>Не загрузились этапы: {failed.join(', ')}.</p>
-          {firstError != null && <p className="muted small">{describeError(firstError)}</p>}
-          <button type="button" className="btn" onClick={prog.reload}>
-            Повторить
-          </button>
-        </div>
-      </>
+      <div className="state state--error" role="alert">
+        <p className="state__title">График не построен: нет данных по части этапов</p>
+        <p>Не загрузились этапы: {failed.join(', ')}.</p>
+        {firstError != null && <p className="muted small">{describeError(firstError)}</p>}
+        <button type="button" className="btn" onClick={prog.reload}>
+          Повторить
+        </button>
+      </div>
     );
   }
 
@@ -93,12 +95,21 @@ function ChartBody({ season, lastRound }: { season: number; lastRound: number })
     <>
       <div className="chips" role="group" aria-label="Сколько пилотов показать">
         {([5, 10, 'all'] as TopN[]).map((t) => (
-          <button key={String(t)} type="button" className="chip" aria-pressed={top === t} onClick={() => setTop(t)}>
+          <button
+            key={String(t)}
+            type="button"
+            className="chip"
+            aria-pressed={top === t}
+            onClick={() => setTop(t)}
+          >
             {t === 'all' ? 'Все пилоты' : `Топ-${t}`}
           </button>
         ))}
       </div>
-      <p className="muted small">Избранные пилоты всегда на графике и выделены толстой линией. Наведите на график или используйте стрелки.</p>
+      <p className="muted small">
+        Избранные пилоты всегда на графике и выделены толстой линией. Наведите на график или используйте
+        стрелки.
+      </p>
 
       <div className="card chart-card">
         <PointsChart
@@ -113,7 +124,15 @@ function ChartBody({ season, lastRound }: { season: number; lastRound: number })
             return (
               <li key={s.driver.id}>
                 <svg width="26" height="10" aria-hidden="true">
-                  <line x1="1" x2="25" y1="5" y2="5" stroke={st.color} strokeWidth="3" strokeDasharray={st.dash} />
+                  <line
+                    x1="1"
+                    x2="25"
+                    y1="5"
+                    y2="5"
+                    stroke={st.color}
+                    strokeWidth="3"
+                    strokeDasharray={st.dash}
+                  />
                 </svg>
                 <DriverCell driver={s.driver} team={s.team} season={season} />
                 <span className="muted">{formatPoints(s.points.at(-1) ?? null)}</span>

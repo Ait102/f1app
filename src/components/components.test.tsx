@@ -1,9 +1,11 @@
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
-import { SortableTable, sortRows, type Column } from './SortableTable';
-import { DataState } from './DataState';
+
 import { ApiError } from '../api/client';
-import { useResource } from '../hooks/useResource';
 import type { DataMeta } from '../domain/types';
+import { useResource } from '../hooks/useResource';
+import { leaderShare } from './bits';
+import { DataState } from './DataState';
+import { SortableTable, sortRows, type Column } from './SortableTable';
 
 type Row = { id: string; pos: number | null; pts: number | null };
 const rows: Row[] = [
@@ -16,9 +18,18 @@ const cols: Column<Row>[] = [
   { key: 'pts', header: 'Очки', render: (r) => r.pts ?? '—', sortValue: (r) => r.pts },
 ];
 
-const meta: DataMeta = { provider: 'Jolpica-F1', sourceUrl: 'https://x', fetchedAt: '2026-10-29T10:00:00.000Z', stale: false };
+const meta: DataMeta = {
+  provider: 'Jolpica-F1',
+  sourceUrl: 'https://x',
+  fetchedAt: '2026-10-29T10:00:00.000Z',
+  stale: false,
+};
 
-const ids = () => screen.getAllByRole('row').slice(1).map((r) => r.firstChild?.textContent);
+const ids = () =>
+  screen
+    .getAllByRole('row')
+    .slice(1)
+    .map((r) => r.firstChild?.textContent);
 
 describe('sortRows', () => {
   it('puts nulls last in both directions and is stable', () => {
@@ -53,7 +64,9 @@ describe('DataState', () => {
   it('shows a rate-limit error with retry', () => {
     const reload = vi.fn();
     render(
-      <DataState state={{ reload, status: 'error', error: new ApiError('rate-limit', 'x', 429, 5) }}>{() => 'x'}</DataState>,
+      <DataState state={{ reload, status: 'error', error: new ApiError('rate-limit', 'x', 429, 5) }}>
+        {() => 'x'}
+      </DataState>,
     );
     expect(screen.getByRole('alert')).toHaveTextContent(/429/);
     fireEvent.click(screen.getByRole('button', { name: 'Повторить' }));
@@ -62,7 +75,11 @@ describe('DataState', () => {
 
   it('shows empty text and source meta', () => {
     render(
-      <DataState state={{ ...base, status: 'success', data: [] as number[], meta }} isEmpty={(d) => d.length === 0} emptyText="Пусто">
+      <DataState
+        state={{ ...base, status: 'success', data: [] as number[], meta }}
+        isEmpty={(d) => d.length === 0}
+        emptyText="Пусто"
+      >
         {() => 'x'}
       </DataState>,
     );
@@ -72,7 +89,14 @@ describe('DataState', () => {
 
   it('warns when data is stale', () => {
     render(
-      <DataState state={{ ...base, status: 'success', data: 1, meta: { ...meta, stale: true, staleReason: 'Нет связи.' } }}>
+      <DataState
+        state={{
+          ...base,
+          status: 'success',
+          data: 1,
+          meta: { ...meta, stale: true, staleReason: 'Нет связи.' },
+        }}
+      >
         {() => 'ok'}
       </DataState>,
     );
@@ -98,5 +122,15 @@ describe('useResource', () => {
 
     await act(async () => resolve2026({ data: 'data-2026', meta }));
     expect(result.current).toMatchObject({ status: 'success', data: 'data-2026' });
+  });
+});
+
+describe('leaderShare', () => {
+  it('is the share of the leader, clamped and with a visible minimum', () => {
+    expect(leaderShare(50, 200)).toBe(25);
+    expect(leaderShare(0, 200, 4)).toBe(4);
+    expect(leaderShare(300, 200)).toBe(100);
+    expect(leaderShare(null, 200)).toBe(0);
+    expect(leaderShare(10, 0)).toBe(0);
   });
 });

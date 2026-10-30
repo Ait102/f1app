@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { mockApi } from './fixtures';
 
 test('opens the latest season with next race and leaders', async ({ page }) => {
@@ -78,7 +79,16 @@ test('network failure keeps the UI working', async ({ page }) => {
 test('mobile layout has no horizontal scroll', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await mockApi(page);
-  for (const path of ['./#/2026', './#/2026/calendar', './#/2026/race/1', './#/2026/drivers', './#/2026/driver/russell', './#/2026/constructor/mercedes', './#/2026/circuit/c1', './#/2026/chart']) {
+  for (const path of [
+    './#/2026',
+    './#/2026/calendar',
+    './#/2026/race/1',
+    './#/2026/drivers',
+    './#/2026/driver/russell',
+    './#/2026/constructor/mercedes',
+    './#/2026/circuit/c1',
+    './#/2026/chart',
+  ]) {
     await page.goto(path);
     await expect(page.locator('main h1')).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -102,7 +112,11 @@ test('Retry-After is shown when the server exposes it', async ({ page }) => {
     path.endsWith('/driverstandings/')
       ? {
           status: 429,
-          headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Expose-Headers': 'Retry-After', 'Retry-After': '3' },
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Expose-Headers': 'Retry-After',
+            'Retry-After': '3',
+          },
         }
       : null,
   );
@@ -172,7 +186,10 @@ test('favourite from profile shows on home and highlights rows', async ({ page }
   await mockApi(page);
   await page.goto('./#/2026/driver/max_verstappen');
   await page.getByRole('button', { name: /Добавить .* в избранное/ }).click();
-  await expect(page.getByRole('button', { name: /Убрать .* из избранного/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: /Убрать .* из избранного/ })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
 
   await page.goto('./#/2026');
   await expect(page.getByRole('heading', { name: /Избранное/ })).toBeVisible();

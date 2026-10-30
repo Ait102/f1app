@@ -1,10 +1,16 @@
 import { Link, useParams } from 'react-router-dom';
-import { DataState, ErrorBox, Loading } from '../components/DataState';
+
 import { DriverCell, FavButton, Stat, teamColor } from '../components/bits';
+import { DataState, ErrorBox, Loading } from '../components/DataState';
 import { SortableTable, type Column } from '../components/SortableTable';
 import { formatPoints } from '../domain/format';
 import type { Driver, RaceWithResults } from '../domain/types';
-import { useConstructor, useConstructorSeason, useConstructorStandings, useConstructorWins } from '../hooks/data';
+import {
+  useConstructor,
+  useConstructorSeason,
+  useConstructorStandings,
+  useConstructorWins,
+} from '../hooks/data';
 import { ID_RE, NotFoundBlock, PageHeader, SeasonGuard } from './common';
 
 export function ConstructorPage() {
@@ -27,7 +33,8 @@ function ConstructorBody({ season, id }: { season: number; id: string }) {
   const team = profile.data;
   if (!team) return <NotFoundBlock title="Команда не найдена" season={season} />;
 
-  const standing = cs.status === 'success' ? cs.data.rows.find((r) => r.constructor.id === id) ?? null : null;
+  const standing =
+    cs.status === 'success' ? (cs.data.rows.find((r) => r.constructor.id === id) ?? null) : null;
 
   return (
     <section className="page">
@@ -66,7 +73,13 @@ function ConstructorBody({ season, id }: { season: number; id: string }) {
         </article>
         <article className="card">
           <h2 className="card__title">Карьера</h2>
-          <DataState state={wins}>{(w) => <div className="stats"><Stat label="Победы в гонках" value={w} /></div>}</DataState>
+          <DataState state={wins}>
+            {(w) => (
+              <div className="stats">
+                <Stat label="Победы в гонках" value={w} />
+              </div>
+            )}
+          </DataState>
         </article>
       </div>
 
@@ -86,10 +99,21 @@ function SeasonBlock({ season, id }: { season: number; id: string }) {
       {(d) => {
         // One column per driver who actually has race results this season.
         const racers: Driver[] = [];
-        for (const r of d.races) for (const x of r.results) if (!racers.some((p) => p.id === x.driver.id)) racers.push(x.driver);
+        for (const r of d.races)
+          for (const x of r.results) if (!racers.some((p) => p.id === x.driver.id)) racers.push(x.driver);
         const columns: Column<RaceWithResults>[] = [
-          { key: 'round', header: 'Этап', align: 'center', render: (r) => r.race.round, sortValue: (r) => r.race.round },
-          { key: 'race', header: 'Гран-при', render: (r) => <Link to={`/${season}/race/${r.race.round}`}>{r.race.name}</Link> },
+          {
+            key: 'round',
+            header: 'Этап',
+            align: 'center',
+            render: (r) => r.race.round,
+            sortValue: (r) => r.race.round,
+          },
+          {
+            key: 'race',
+            header: 'Гран-при',
+            render: (r) => <Link to={`/${season}/race/${r.race.round}`}>{r.race.name}</Link>,
+          },
           ...racers.map<Column<RaceWithResults>>((p) => ({
             key: p.id,
             header: p.code ?? p.familyName,
@@ -126,7 +150,12 @@ function SeasonBlock({ season, id }: { season: number; id: string }) {
             {d.races.length === 0 ? (
               <p className="muted">Результатов пока нет.</p>
             ) : (
-              <SortableTable columns={columns} rows={d.races} rowKey={(r) => String(r.race.round)} caption={`Результаты команды по этапам ${season}`} />
+              <SortableTable
+                columns={columns}
+                rows={d.races}
+                rowKey={(r) => String(r.race.round)}
+                caption={`Результаты команды по этапам ${season}`}
+              />
             )}
           </>
         );

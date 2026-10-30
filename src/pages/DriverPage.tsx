@@ -1,12 +1,14 @@
 import { Link, useParams } from 'react-router-dom';
-import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
+
 import { FavButton, Stat, TeamCell } from '../components/bits';
+import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
 import { SortableTable, type Column } from '../components/SortableTable';
-import { formatPoints, formatShortDate } from '../domain/format';
+import { formatDate, formatPoints } from '../domain/format';
 import { ageAt, driverName } from '../domain/mappers';
 import type { RaceWithResults } from '../domain/types';
 import { useDriver, useDriverCareer, useDriverSeasonResults, useDriverStandings } from '../hooks/data';
-import { ID_RE, NotFoundBlock, PageHeader, SeasonGuard, useNow } from './common';
+import { useNow } from '../hooks/useNow';
+import { ID_RE, NotFoundBlock, PageHeader, SeasonGuard } from './common';
 
 export function DriverPage() {
   return <SeasonGuard>{(season) => <DriverProfileView season={season} />}</SeasonGuard>;
@@ -29,12 +31,12 @@ function DriverBody({ season, id }: { season: number; id: string }) {
   const d = profile.data;
   if (!d) return <NotFoundBlock title="Пилот не найден" season={season} />;
 
-  const standing = ds.status === 'success' ? ds.data.rows.find((r) => r.driver.id === id) ?? null : null;
+  const standing = ds.status === 'success' ? (ds.data.rows.find((r) => r.driver.id === id) ?? null) : null;
   const age = ageAt(d.dateOfBirth, now);
   const facts = [
     d.number && `№ ${d.number}`,
     d.nationality,
-    d.dateOfBirth && `родился ${formatShortDate(d.dateOfBirth)} ${d.dateOfBirth.slice(0, 4)}${age !== null ? ` (${age})` : ''}`,
+    d.dateOfBirth && `родился ${formatDate(d.dateOfBirth)}${age !== null ? ` (${age})` : ''}`,
   ].filter(Boolean);
 
   return (
@@ -108,14 +110,32 @@ function DriverBody({ season, id }: { season: number; id: string }) {
 function SeasonResults({ season, id }: { season: number; id: string }) {
   const res = useDriverSeasonResults(season, id);
   const columns: Column<RaceWithResults>[] = [
-    { key: 'round', header: 'Этап', align: 'center', render: (r) => r.race.round, sortValue: (r) => r.race.round },
+    {
+      key: 'round',
+      header: 'Этап',
+      align: 'center',
+      render: (r) => r.race.round,
+      sortValue: (r) => r.race.round,
+    },
     {
       key: 'race',
       header: 'Гран-при',
       render: (r) => <Link to={`/${season}/race/${r.race.round}`}>{r.race.name}</Link>,
     },
-    { key: 'team', header: 'Команда', optional: true, render: (r) => <TeamCell team={r.results[0]?.constructor ?? null} season={season} /> },
-    { key: 'grid', header: 'Старт', optional: true, align: 'right', render: (r) => (r.results[0]?.grid === 0 ? 'пит-лейн' : r.results[0]?.grid ?? '—'), sortValue: (r) => r.results[0]?.grid ?? null },
+    {
+      key: 'team',
+      header: 'Команда',
+      optional: true,
+      render: (r) => <TeamCell team={r.results[0]?.constructor ?? null} season={season} />,
+    },
+    {
+      key: 'grid',
+      header: 'Старт',
+      optional: true,
+      align: 'right',
+      render: (r) => (r.results[0]?.grid === 0 ? 'пит-лейн' : (r.results[0]?.grid ?? '—')),
+      sortValue: (r) => r.results[0]?.grid ?? null,
+    },
     {
       key: 'pos',
       header: 'Финиш',
@@ -124,11 +144,28 @@ function SeasonResults({ season, id }: { season: number; id: string }) {
       sortValue: (r) => r.results[0]?.position ?? null,
     },
     { key: 'status', header: 'Статус', optional: true, render: (r) => r.results[0]?.status ?? '—' },
-    { key: 'pts', header: 'Очки', align: 'right', render: (r) => <strong>{formatPoints(r.results[0]?.points ?? null)}</strong>, sortValue: (r) => r.results[0]?.points ?? null },
+    {
+      key: 'pts',
+      header: 'Очки',
+      align: 'right',
+      render: (r) => <strong>{formatPoints(r.results[0]?.points ?? null)}</strong>,
+      sortValue: (r) => r.results[0]?.points ?? null,
+    },
   ];
   return (
-    <DataState state={res} isEmpty={(d) => d.length === 0} emptyText={`У источника нет результатов этого пилота в сезоне ${season}.`}>
-      {(rows) => <SortableTable columns={columns} rows={rows} rowKey={(r) => String(r.race.round)} caption={`Результаты по этапам ${season}`} />}
+    <DataState
+      state={res}
+      isEmpty={(d) => d.length === 0}
+      emptyText={`У источника нет результатов этого пилота в сезоне ${season}.`}
+    >
+      {(rows) => (
+        <SortableTable
+          columns={columns}
+          rows={rows}
+          rowKey={(r) => String(r.race.round)}
+          caption={`Результаты по этапам ${season}`}
+        />
+      )}
     </DataState>
   );
 }

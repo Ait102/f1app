@@ -67,11 +67,17 @@ export function formatMoment(
   return { text, utc: `${date} ${time.replace(/Z$/, '').slice(0, 5)} UTC`, hasTime: true };
 }
 
-export function formatShortDate(date: string | null): string {
+/** "15 февраля 1998 г." for a YYYY-MM-DD date, without shifting it into another zone. */
+export function formatDate(date: string | null): string {
   if (!date) return 'Дата не объявлена';
   const d = sessionStart({ date, time: null });
   if (!d) return date;
-  return new Intl.DateTimeFormat(LOCALE, { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(d);
+  return new Intl.DateTimeFormat(LOCALE, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(d);
 }
 
 export function formatDateTime(iso: string, timeZone: string = localTimeZone()): string {
@@ -92,7 +98,10 @@ export function formatPoints(p: number | null): string {
   return p.toLocaleString(LOCALE, { maximumFractionDigits: 1 });
 }
 
-export function countdownParts(target: Date, now: Date): { days: number; hours: number; minutes: number } | null {
+export function countdownParts(
+  target: Date,
+  now: Date,
+): { days: number; hours: number; minutes: number } | null {
   const ms = target.getTime() - now.getTime();
   if (ms <= 0) return null;
   const mins = Math.floor(ms / 60000);

@@ -6,7 +6,15 @@ const st = (id: string, pos: number, pts: number, team = 'mercedes'): DriverStan
   positionText: String(pos),
   points: pts,
   wins: 0,
-  driver: { id, givenName: '', familyName: id, code: id.toUpperCase(), number: null, nationality: null, url: null },
+  driver: {
+    id,
+    givenName: '',
+    familyName: id,
+    code: id.toUpperCase(),
+    number: null,
+    nationality: null,
+    url: null,
+  },
   constructors: [{ id: team, name: team, nationality: null, url: null }],
 });
 

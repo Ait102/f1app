@@ -1,18 +1,25 @@
 import {
   ageAt,
   mapCircuit,
-  mapDriverProfile,
-  mergeRacesByRound,
   mapConstructorStandings,
+  mapDriverProfile,
   mapDriverStandings,
   mapRace,
   mapRaceResults,
   mapRaces,
   mapSeasons,
+  mergeRacesByRound,
   num,
 } from './mappers';
 
-const driver = { driverId: 'russell', givenName: 'George', familyName: 'Russell', code: 'RUS', permanentNumber: '63', nationality: 'British' };
+const driver = {
+  driverId: 'russell',
+  givenName: 'George',
+  familyName: 'Russell',
+  code: 'RUS',
+  permanentNumber: '63',
+  nationality: 'British',
+};
 const mercedes = { constructorId: 'mercedes', name: 'Mercedes', nationality: 'German' };
 
 describe('num', () => {
@@ -40,7 +47,11 @@ describe('mapRace', () => {
       season: '2026',
       round: '2',
       raceName: 'Chinese Grand Prix',
-      Circuit: { circuitId: 'shanghai', circuitName: 'Shanghai International Circuit', Location: { locality: 'Shanghai', country: 'China' } },
+      Circuit: {
+        circuitId: 'shanghai',
+        circuitName: 'Shanghai International Circuit',
+        Location: { locality: 'Shanghai', country: 'China' },
+      },
       date: '2026-03-15',
       time: '07:00:00Z',
       FirstPractice: { date: '2026-03-13', time: '03:30:00Z' },
@@ -51,7 +62,13 @@ describe('mapRace', () => {
     expect(r.round).toBe(2);
     expect(r.country).toBe('China');
     expect(r.hasSprint).toBe(true);
-    expect(r.sessions.map((s) => s.kind)).toEqual(['FP1', 'SprintQualifying', 'Sprint', 'Qualifying', 'Race']);
+    expect(r.sessions.map((s) => s.kind)).toEqual([
+      'FP1',
+      'SprintQualifying',
+      'Sprint',
+      'Qualifying',
+      'Race',
+    ]);
   });
 
   it('keeps missing fields null instead of inventing values', () => {
@@ -67,11 +84,7 @@ describe('mapRace', () => {
   });
 
   it('mapRaces sorts by round', () => {
-    const list = mapRaces([
-      { season: '2026', round: '3' },
-      { season: '2026', round: '1' },
-      { bad: true },
-    ]);
+    const list = mapRaces([{ season: '2026', round: '3' }, { season: '2026', round: '1' }, { bad: true }]);
     expect(list.map((r) => r.round)).toEqual([1, 3]);
   });
 });
@@ -79,8 +92,25 @@ describe('mapRace', () => {
 describe('mapRaceResults', () => {
   it('parses numbers from strings and keeps optional fields', () => {
     const [a, b] = mapRaceResults([
-      { position: '1', positionText: '1', points: '25', grid: '1', laps: '58', status: 'Finished', Time: { time: '1:23:06.801' }, Driver: driver, Constructor: mercedes },
-      { position: '20', positionText: 'R', points: '0', laps: '12', status: 'Retired', Driver: { driverId: 'x', familyName: 'X' } },
+      {
+        position: '1',
+        positionText: '1',
+        points: '25',
+        grid: '1',
+        laps: '58',
+        status: 'Finished',
+        Time: { time: '1:23:06.801' },
+        Driver: driver,
+        Constructor: mercedes,
+      },
+      {
+        position: '20',
+        positionText: 'R',
+        points: '0',
+        laps: '12',
+        status: 'Retired',
+        Driver: { driverId: 'x', familyName: 'X' },
+      },
     ]);
     expect(a).toMatchObject({ position: 1, points: 25, grid: 1, laps: 58, time: '1:23:06.801' });
     expect(a.driver.code).toBe('RUS');
@@ -98,7 +128,16 @@ describe('mapRaceResults', () => {
 
 describe('standings', () => {
   it('maps driver standings with fractional points', () => {
-    const [s] = mapDriverStandings([{ position: '1', positionText: '1', points: '365.5', wins: '9', Driver: driver, Constructors: [mercedes] }]);
+    const [s] = mapDriverStandings([
+      {
+        position: '1',
+        positionText: '1',
+        points: '365.5',
+        wins: '9',
+        Driver: driver,
+        Constructors: [mercedes],
+      },
+    ]);
     expect(s.points).toBe(365.5);
     expect(s.wins).toBe(9);
     expect(s.constructors[0].name).toBe('Mercedes');
@@ -113,7 +152,11 @@ describe('standings', () => {
 
 describe('profiles', () => {
   it('maps a circuit with coordinates', () => {
-    const c = mapCircuit({ circuitId: 'suzuka', circuitName: 'Suzuka Circuit', Location: { lat: '34.8431', long: '136.541', locality: 'Suzuka', country: 'Japan' } });
+    const c = mapCircuit({
+      circuitId: 'suzuka',
+      circuitName: 'Suzuka Circuit',
+      Location: { lat: '34.8431', long: '136.541', locality: 'Suzuka', country: 'Japan' },
+    });
     expect(c).toMatchObject({ id: 'suzuka', lat: 34.8431, long: 136.541, country: 'Japan' });
     expect(mapCircuit({})).toBeNull();
   });
@@ -138,6 +181,8 @@ describe('profiles', () => {
   });
 
   it('maps driver profile with birth date', () => {
-    expect(mapDriverProfile({ driverId: 'x', familyName: 'X', dateOfBirth: '2000-01-01' })?.dateOfBirth).toBe('2000-01-01');
+    expect(mapDriverProfile({ driverId: 'x', familyName: 'X', dateOfBirth: '2000-01-01' })?.dateOfBirth).toBe(
+      '2000-01-01',
+    );
   });
 });

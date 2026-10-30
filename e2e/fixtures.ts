@@ -23,7 +23,11 @@ const race = (season: number, round: number, name: string, date: string, extra: 
   season: String(season),
   round: String(round),
   raceName: name,
-  Circuit: { circuitId: `c${round}`, circuitName: `${name} Circuit`, Location: { locality: 'City', country: 'Country' } },
+  Circuit: {
+    circuitId: `c${round}`,
+    circuitName: `${name} Circuit`,
+    Location: { locality: 'City', country: 'Country' },
+  },
   date,
   time: '13:00:00Z',
   ...extra,
@@ -48,12 +52,44 @@ const driverStandings: Record<number, object[]> = {
 };
 
 const results = [
-  { position: '1', positionText: '1', points: '25', grid: '1', laps: '58', status: 'Finished', Time: { time: '1:23:06.801' }, Driver: RUS, Constructor: MER },
-  { position: '2', positionText: '2', points: '18', grid: '2', laps: '58', status: 'Finished', Time: { time: '+2.974' }, Driver: ANT, Constructor: MER },
-  { position: '3', positionText: '3', points: '15', grid: '3', laps: '58', status: 'Finished', Time: { time: '+5.100' }, Driver: VER, Constructor: RBR },
+  {
+    position: '1',
+    positionText: '1',
+    points: '25',
+    grid: '1',
+    laps: '58',
+    status: 'Finished',
+    Time: { time: '1:23:06.801' },
+    Driver: RUS,
+    Constructor: MER,
+  },
+  {
+    position: '2',
+    positionText: '2',
+    points: '18',
+    grid: '2',
+    laps: '58',
+    status: 'Finished',
+    Time: { time: '+2.974' },
+    Driver: ANT,
+    Constructor: MER,
+  },
+  {
+    position: '3',
+    positionText: '3',
+    points: '15',
+    grid: '3',
+    laps: '58',
+    status: 'Finished',
+    Time: { time: '+5.100' },
+    Driver: VER,
+    Constructor: RBR,
+  },
 ];
 
-const mr = (total: number, body: object) => ({ MRData: { limit: '100', offset: '0', total: String(total), ...body } });
+const mr = (total: number, body: object) => ({
+  MRData: { limit: '100', offset: '0', total: String(total), ...body },
+});
 
 function respond(path: string): object | null {
   let m: RegExpMatchArray | null;
@@ -66,18 +102,24 @@ function respond(path: string): object | null {
   }
   if ((m = path.match(/^\/(\d{4})\/driverstandings\/$/))) {
     const rows = driverStandings[+m[1]] ?? [];
-    return mr(rows.length, { StandingsTable: { StandingsLists: [{ season: m[1], round: '1', DriverStandings: rows }] } });
+    return mr(rows.length, {
+      StandingsTable: { StandingsLists: [{ season: m[1], round: '1', DriverStandings: rows }] },
+    });
   }
   if ((m = path.match(/^\/(\d{4})\/(\d+)\/driverstandings\/$/))) {
     const rows = driverStandings[+m[1]] ?? [];
-    return mr(rows.length, { StandingsTable: { StandingsLists: [{ season: m[1], round: m[2], DriverStandings: rows }] } });
+    return mr(rows.length, {
+      StandingsTable: { StandingsLists: [{ season: m[1], round: m[2], DriverStandings: rows }] },
+    });
   }
   if ((m = path.match(/^\/(\d{4})\/constructorstandings\/$/))) {
     const rows = [
       { position: '1', positionText: '1', points: '43', wins: '1', Constructor: MER },
       { position: '2', positionText: '2', points: '15', wins: '0', Constructor: RBR },
     ];
-    return mr(2, { StandingsTable: { StandingsLists: [{ season: m[1], round: '1', ConstructorStandings: rows }] } });
+    return mr(2, {
+      StandingsTable: { StandingsLists: [{ season: m[1], round: '1', ConstructorStandings: rows }] },
+    });
   }
   if ((m = path.match(/^\/(\d{4})\/(\d+)\/results\/$/))) {
     const r = { ...(races[+m[1]]?.[+m[2] - 1] ?? {}), Results: +m[2] === 1 ? results : [] };
@@ -93,7 +135,9 @@ function respond(path: string): object | null {
   const r1 = races[2026][0];
   if ((m = path.match(/^\/drivers\/(\w+)\/$/))) {
     const d = allDrivers.find((x) => x.driverId === m![1]);
-    return mr(d ? 1 : 0, { DriverTable: { Drivers: d ? [{ ...d, permanentNumber: '63', dateOfBirth: '1998-02-15' }] : [] } });
+    return mr(d ? 1 : 0, {
+      DriverTable: { Drivers: d ? [{ ...d, permanentNumber: '63', dateOfBirth: '1998-02-15' }] : [] },
+    });
   }
   if ((m = path.match(/^\/drivers\/(\w+)\/results\/1\/$/))) return mr(m[1] === 'russell' ? 8 : 0, {});
   if ((m = path.match(/^\/drivers\/(\w+)\/results\/$/))) return mr(170, {});
@@ -117,7 +161,13 @@ function respond(path: string): object | null {
   if ((m = path.match(/^\/circuits\/(\w+)\/$/))) {
     return mr(1, {
       CircuitTable: {
-        Circuits: [{ circuitId: m[1], circuitName: 'Australian Grand Prix Circuit', Location: { lat: '-37.8', long: '144.9', locality: 'City', country: 'Country' } }],
+        Circuits: [
+          {
+            circuitId: m[1],
+            circuitName: 'Australian Grand Prix Circuit',
+            Location: { lat: '-37.8', long: '144.9', locality: 'City', country: 'Country' },
+          },
+        ],
       },
     });
   }
@@ -134,7 +184,9 @@ function respond(path: string): object | null {
   return null;
 }
 
-export type Override = (path: string) => { status: number; headers?: Record<string, string>; body?: string } | null;
+export type Override = (
+  path: string,
+) => { status: number; headers?: Record<string, string>; body?: string } | null;
 
 /** Serves fixtures for every Jolpica request; `override` can inject failures. */
 export async function mockApi(page: Page, override?: Override): Promise<string[]> {

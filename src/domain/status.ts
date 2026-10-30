@@ -15,7 +15,9 @@ const RACE_DURATION_MS = 3 * 60 * 60 * 1000;
 
 export function sessionStart(s: Pick<Session, 'date' | 'time'>): Date | null {
   if (!s.date) return null;
-  const d = new Date(s.time ? `${s.date}T${s.time.endsWith('Z') ? s.time : s.time + 'Z'}` : `${s.date}T00:00:00Z`);
+  const d = new Date(
+    s.time ? `${s.date}T${s.time.endsWith('Z') ? s.time : s.time + 'Z'}` : `${s.date}T00:00:00Z`,
+  );
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
@@ -25,11 +27,7 @@ export function sessionStart(s: Pick<Session, 'date' | 'time'>): Date | null {
  * - otherwise from session dates. Jolpica has no cancelled/postponed flags,
  *   so those are never shown.
  */
-export function raceStatus(
-  race: RaceEvent,
-  now: Date,
-  lastCompletedRound: number | null,
-): RaceStatus {
+export function raceStatus(race: RaceEvent, now: Date, lastCompletedRound: number | null): RaceStatus {
   if (lastCompletedRound !== null && race.round <= lastCompletedRound) return 'completed';
 
   const raceStart = sessionStart(race);

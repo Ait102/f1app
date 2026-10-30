@@ -1,7 +1,8 @@
 import { act, fireEvent, render, renderHook, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { readFavorites, toggleFavorite, useFavorites } from './useFavorites';
+
 import { FavButton } from '../components/bits';
+import { readFavorites, toggleFavorite, useFavorites } from './useFavorites';
 
 beforeEach(() => localStorage.clear());
 
@@ -36,6 +37,9 @@ describe('favorites', () => {
     const btn = screen.getByRole('button', { name: /Добавить Lando Norris/ });
     expect(btn).toHaveAttribute('aria-pressed', 'false');
     fireEvent.click(btn);
-    expect(screen.getByRole('button', { name: /Убрать Lando Norris/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /Убрать Lando Norris/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 });

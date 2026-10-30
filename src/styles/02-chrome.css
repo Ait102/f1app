@@ -147,10 +147,19 @@ select {
   vertical-align: middle;
 }
 
-.badge--completed { color: var(--c-completed); }
-.badge--upcoming { color: var(--c-upcoming); }
-.badge--awaiting { color: var(--c-awaiting); }
-.badge--unknown { color: var(--muted); border-style: dashed; }
+.badge--completed {
+  color: var(--c-completed);
+}
+.badge--upcoming {
+  color: var(--c-upcoming);
+}
+.badge--awaiting {
+  color: var(--c-awaiting);
+}
+.badge--unknown {
+  color: var(--muted);
+  border-style: dashed;
+}
 
 /* States */
 
@@ -189,4 +198,3 @@ select {
   color: var(--c-awaiting);
   font-size: 0.875rem;
 }
-

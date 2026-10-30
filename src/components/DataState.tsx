@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
+
 import { ApiError, describeError } from '../api/client';
+import { formatDateTime } from '../domain/format';
 import type { DataMeta } from '../domain/types';
 import type { ResourceState } from '../hooks/useResource';
-import { formatDateTime } from '../domain/format';
 
 interface Props<T> {
   state: ResourceState<T> & { reload: () => void };

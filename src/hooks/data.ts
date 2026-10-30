@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom';
+
 import { jolpica } from '../api/jolpica';
 import { useResource } from './useResource';
 
@@ -12,7 +13,9 @@ export function useSeasons() {
 }
 
 export function useRaces(season: number | null) {
-  return useResource(season === null ? null : `races:${season}`, (force) => jolpica.getRaces(season!, { force }));
+  return useResource(season === null ? null : `races:${season}`, (force) =>
+    jolpica.getRaces(season!, { force }),
+  );
 }
 
 export function useDriverStandings(season: number | null) {
@@ -50,7 +53,9 @@ export function useDriver(id: string) {
 }
 
 export function useDriverSeasonResults(season: number, id: string) {
-  return useResource(`dres:${season}:${id}`, (force) => jolpica.getDriverSeasonResults(season, id, { force }));
+  return useResource(`dres:${season}:${id}`, (force) =>
+    jolpica.getDriverSeasonResults(season, id, { force }),
+  );
 }
 
 export function useDriverCareer(id: string) {
@@ -62,7 +67,9 @@ export function useConstructor(id: string) {
 }
 
 export function useConstructorSeason(season: number, id: string) {
-  return useResource(`tseason:${season}:${id}`, (force) => jolpica.getConstructorSeason(season, id, { force }));
+  return useResource(`tseason:${season}:${id}`, (force) =>
+    jolpica.getConstructorSeason(season, id, { force }),
+  );
 }
 
 export function useConstructorWins(id: string) {

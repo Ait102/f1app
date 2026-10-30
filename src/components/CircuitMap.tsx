@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+
 import { eraLabel, loadCircuit, type CircuitLayout } from '../data/circuits';
 import { Stat } from './bits';
 
@@ -70,7 +71,10 @@ export function CircuitPanel({
           <div className="stats">
             <Stat label="Длина" value={`${shape.lengthKm} км`} />
             <Stat label="Поворотов" value={shape.turns} />
-            <Stat label="Направление" value={shape.direction === 'clockwise' ? 'По часовой' : 'Против часовой'} />
+            <Stat
+              label="Направление"
+              value={shape.direction === 'clockwise' ? 'По часовой' : 'Против часовой'}
+            />
           </div>
           <p className="muted small">
             Схема:{' '}

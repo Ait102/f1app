@@ -3,38 +3,38 @@ import {
   arr,
   mapCircuit,
   mapConstructor,
+  mapConstructorStandings,
   mapDriver,
   mapDriverProfile,
-  mergeRacesByRound,
-  mapConstructorStandings,
   mapDriverStandings,
   mapQualifying,
   mapRace,
   mapRaceResults,
   mapRaces,
   mapSeasons,
+  mergeRacesByRound,
   num,
   rec,
 } from '../domain/mappers';
+import type { RoundStandings } from '../domain/progress';
 import type {
   CareerCounts,
   Circuit,
   Constructor,
-  Driver,
-  DriverProfile,
-  RaceWithResults,
   ConstructorStanding,
   DataMeta,
+  Driver,
+  DriverProfile,
   DriverStanding,
   Fetched,
   QualifyingResult,
   RaceEvent,
   RaceResult,
+  RaceWithResults,
   Season,
   Standings,
 } from '../domain/types';
 import { ApiError, client as defaultClient, type ApiClient, type GetOptions } from './client';
-import type { RoundStandings } from '../domain/progress';
 
 const PAGE_LIMIT = 100;
 const MAX_PAGES = 20;
@@ -107,8 +107,17 @@ export function createJolpica(api: ApiClient = defaultClient) {
       return { data: mapDriverProfile(arr(rec(mr.DriverTable).Drivers)[0]), meta: res.meta };
     },
 
-    async getDriverSeasonResults(season: number, id: string, opts?: GetOptions): Promise<Fetched<RaceWithResults[]>> {
-      const res = await getPaged(api, `${seasonPath(season)}${idPath('drivers', id)}/results/`, racesOf, opts);
+    async getDriverSeasonResults(
+      season: number,
+      id: string,
+      opts?: GetOptions,
+    ): Promise<Fetched<RaceWithResults[]>> {
+      const res = await getPaged(
+        api,
+        `${seasonPath(season)}${idPath('drivers', id)}/results/`,
+        racesOf,
+        opts,
+      );
       return { data: mergeRacesByRound(res.data.items), meta: res.meta };
     },
 
@@ -172,7 +181,12 @@ export function createJolpica(api: ApiClient = defaultClient) {
       round: number,
       opts?: GetOptions,
     ): Promise<Fetched<{ race: RaceEvent | null; results: RaceResult[] }>> {
-      const res = await getPaged(api, `${roundPath(season, round)}/results/`, (mr) => arr(firstRace(mr).Results), opts);
+      const res = await getPaged(
+        api,
+        `${roundPath(season, round)}/results/`,
+        (mr) => arr(firstRace(mr).Results),
+        opts,
+      );
       return {
         data: { race: mapRace(firstRace(res.data.mr)), results: mapRaceResults(res.data.items) },
         meta: res.meta,
@@ -180,19 +194,42 @@ export function createJolpica(api: ApiClient = defaultClient) {
     },
 
     async getSprintResults(season: number, round: number, opts?: GetOptions): Promise<Fetched<RaceResult[]>> {
-      const res = await getPaged(api, `${roundPath(season, round)}/sprint/`, (mr) => arr(firstRace(mr).SprintResults), opts);
+      const res = await getPaged(
+        api,
+        `${roundPath(season, round)}/sprint/`,
+        (mr) => arr(firstRace(mr).SprintResults),
+        opts,
+      );
       return { data: mapRaceResults(res.data.items), meta: res.meta };
     },
 
-    async getQualifying(season: number, round: number, opts?: GetOptions): Promise<Fetched<QualifyingResult[]>> {
-      const res = await getPaged(api, `${roundPath(season, round)}/qualifying/`, (mr) => arr(firstRace(mr).QualifyingResults), opts);
+    async getQualifying(
+      season: number,
+      round: number,
+      opts?: GetOptions,
+    ): Promise<Fetched<QualifyingResult[]>> {
+      const res = await getPaged(
+        api,
+        `${roundPath(season, round)}/qualifying/`,
+        (mr) => arr(firstRace(mr).QualifyingResults),
+        opts,
+      );
       return { data: mapQualifying(res.data.items), meta: res.meta };
     },
 
     async getDriverStandings(season: number, opts?: GetOptions): Promise<Fetched<Standings<DriverStanding>>> {
-      const res = await getPaged(api, `${seasonPath(season)}/driverstandings/`, (mr) => arr(standingsList(mr).DriverStandings), opts);
+      const res = await getPaged(
+        api,
+        `${seasonPath(season)}/driverstandings/`,
+        (mr) => arr(standingsList(mr).DriverStandings),
+        opts,
+      );
       return {
-        data: { seasonYear: season, round: num(standingsList(res.data.mr).round), rows: mapDriverStandings(res.data.items) },
+        data: {
+          seasonYear: season,
+          round: num(standingsList(res.data.mr).round),
+          rows: mapDriverStandings(res.data.items),
+        },
         meta: res.meta,
       };
     },
@@ -212,7 +249,12 @@ export function createJolpica(api: ApiClient = defaultClient) {
       let firstError: unknown = null;
       for (let r = 1; r <= lastRound; r++) {
         try {
-          const res = await getPaged(api, `${roundPath(season, r)}/driverstandings/`, (mr) => arr(standingsList(mr).DriverStandings), opts);
+          const res = await getPaged(
+            api,
+            `${roundPath(season, r)}/driverstandings/`,
+            (mr) => arr(standingsList(mr).DriverStandings),
+            opts,
+          );
           const rows = mapDriverStandings(res.data.items);
           if (rows.length) rounds.push({ round: r, rows });
           else failed.push(r);
@@ -232,10 +274,22 @@ export function createJolpica(api: ApiClient = defaultClient) {
       return { data: { rounds, failed, firstError }, meta: mergeMeta(metas) };
     },
 
-    async getConstructorStandings(season: number, opts?: GetOptions): Promise<Fetched<Standings<ConstructorStanding>>> {
-      const res = await getPaged(api, `${seasonPath(season)}/constructorstandings/`, (mr) => arr(standingsList(mr).ConstructorStandings), opts);
+    async getConstructorStandings(
+      season: number,
+      opts?: GetOptions,
+    ): Promise<Fetched<Standings<ConstructorStanding>>> {
+      const res = await getPaged(
+        api,
+        `${seasonPath(season)}/constructorstandings/`,
+        (mr) => arr(standingsList(mr).ConstructorStandings),
+        opts,
+      );
       return {
-        data: { seasonYear: season, round: num(standingsList(res.data.mr).round), rows: mapConstructorStandings(res.data.items) },
+        data: {
+          seasonYear: season,
+          round: num(standingsList(res.data.mr).round),
+          rows: mapConstructorStandings(res.data.items),
+        },
         meta: res.meta,
       };
     },

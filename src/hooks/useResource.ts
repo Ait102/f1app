@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+
 import type { DataMeta, Fetched } from '../domain/types';
 
 export type ResourceState<T> =

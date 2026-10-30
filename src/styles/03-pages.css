@@ -54,9 +54,15 @@
   text-align: right;
 }
 
-.podium__item--1 .podium__pos { color: var(--gold); }
-.podium__item--2 .podium__pos { color: var(--silver); }
-.podium__item--3 .podium__pos { color: var(--bronze); }
+.podium__item--1 .podium__pos {
+  color: var(--gold);
+}
+.podium__item--2 .podium__pos {
+  color: var(--silver);
+}
+.podium__item--3 .podium__pos {
+  color: var(--bronze);
+}
 
 /* Driver/team cells */
 .driver,
@@ -189,8 +195,12 @@
   border-bottom: 0;
 }
 
-.align-right { text-align: right; }
-.align-center { text-align: center; }
+.align-right {
+  text-align: right;
+}
+.align-center {
+  text-align: center;
+}
 
 .th-sort {
   font: inherit;
@@ -377,4 +387,3 @@
   left: 0;
   background: var(--surface);
 }
-

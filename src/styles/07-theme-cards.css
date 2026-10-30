@@ -188,7 +188,9 @@ a.hero__name:hover {
   vertical-align: 0.22em;
   background: var(--accent);
   opacity: 0;
-  transition: opacity var(--t) var(--ease), width var(--t) var(--ease);
+  transition:
+    opacity var(--t) var(--ease),
+    width var(--t) var(--ease);
 }
 
 a.hero__name:hover::after,
@@ -239,4 +241,3 @@ a.hero__name:focus-visible::after {
   letter-spacing: 0.12em;
   color: var(--muted);
 }
-

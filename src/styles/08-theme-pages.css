@@ -69,8 +69,7 @@
   border-color: rgba(225, 6, 0, 0.45);
   border-left: 3px solid var(--accent);
   background:
-    radial-gradient(320px 160px at 100% 0%, rgba(225, 6, 0, 0.22), transparent 70%),
-    var(--sheen),
+    radial-gradient(320px 160px at 100% 0%, rgba(225, 6, 0, 0.22), transparent 70%), var(--sheen),
     var(--surface);
   box-shadow: none;
 }
@@ -592,4 +591,3 @@ code {
 .chart-loading {
   max-width: 420px;
 }
-

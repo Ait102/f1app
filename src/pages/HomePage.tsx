@@ -1,13 +1,15 @@
-import type React from 'react';
+import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
+
+import { DriverCell, leaderShare, Moment, posClass, StatusBadge, TeamCell } from '../components/bits';
 import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
-import { DriverCell, Moment, StatusBadge, TeamCell, posClass } from '../components/bits';
 import { countdownParts, formatPoints } from '../domain/format';
 import { findNextRace, raceStatus, sessionStart } from '../domain/status';
 import type { RaceEvent } from '../domain/types';
 import { useConstructorStandings, useDriverStandings, useRaceResults, useRaces } from '../hooks/data';
-import { PageHeader, SeasonGuard, useNow } from './common';
 import { useFavorites } from '../hooks/useFavorites';
+import { useNow } from '../hooks/useNow';
+import { PageHeader, SeasonGuard } from './common';
 
 export function HomePage() {
   return <SeasonGuard>{(season) => <Home season={season} />}</SeasonGuard>;
@@ -27,12 +29,24 @@ function Home({ season }: { season: number }) {
       <PageHeader eyebrow="Formula 1" title={`Сезон ${season}`}>
         {total !== null && (
           <p className="lead">
-            {lastRound !== null ? `Завершено этапов: ${lastRound} из ${total}` : `Этапов в календаре: ${total}`}
+            {lastRound !== null
+              ? `Завершено этапов: ${lastRound} из ${total}`
+              : `Этапов в календаре: ${total}`}
           </p>
         )}
         {total !== null && lastRound !== null && total > 0 && (
-          <div className="progress" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={lastRound} aria-label="Прогресс сезона">
-            <div className="progress__bar" style={{ width: `${Math.min(100, (lastRound / total) * 100)}%` }} />
+          <div
+            className="progress"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={total}
+            aria-valuenow={lastRound}
+            aria-label="Прогресс сезона"
+          >
+            <div
+              className="progress__bar"
+              style={{ width: `${Math.min(100, (lastRound / total) * 100)}%` }}
+            />
           </div>
         )}
       </PageHeader>
@@ -64,14 +78,22 @@ function Home({ season }: { season: number }) {
         <article className="card">
           <div className="card__head">
             <h2 className="card__title">Личный зачёт</h2>
-            <Link to={`/${season}/drivers`} className="card__more">Вся таблица →</Link>
+            <Link to={`/${season}/drivers`} className="card__more">
+              Вся таблица →
+            </Link>
           </div>
-          <DataState state={ds} isEmpty={(d) => d.rows.length === 0} emptyText="Личный зачёт пока не опубликован.">
+          <DataState
+            state={ds}
+            isEmpty={(d) => d.rows.length === 0}
+            emptyText="Личный зачёт пока не опубликован."
+          >
             {(d) => (
               <ol className="leaders">
                 {d.rows.slice(0, 5).map((r) => (
                   <li key={r.driver.id} style={barStyle(r.points, d.rows[0]?.points)}>
-                    <span className={posClass('leaders__pos', r.position)}>{r.positionText ?? r.position ?? '—'}</span>
+                    <span className={posClass('leaders__pos', r.position)}>
+                      {r.positionText ?? r.position ?? '—'}
+                    </span>
                     <DriverCell driver={r.driver} team={r.constructors.at(-1)} />
                     <span className="leaders__pts">{formatPoints(r.points)}</span>
                   </li>
@@ -84,7 +106,9 @@ function Home({ season }: { season: number }) {
         <article className="card">
           <div className="card__head">
             <h2 className="card__title">Кубок конструкторов</h2>
-            <Link to={`/${season}/constructors`} className="card__more">Вся таблица →</Link>
+            <Link to={`/${season}/constructors`} className="card__more">
+              Вся таблица →
+            </Link>
           </div>
           <DataState
             state={cs}
@@ -95,7 +119,9 @@ function Home({ season }: { season: number }) {
               <ol className="leaders">
                 {d.rows.slice(0, 5).map((r) => (
                   <li key={r.constructor.id} style={barStyle(r.points, d.rows[0]?.points)}>
-                    <span className={posClass('leaders__pos', r.position)}>{r.positionText ?? r.position ?? '—'}</span>
+                    <span className={posClass('leaders__pos', r.position)}>
+                      {r.positionText ?? r.position ?? '—'}
+                    </span>
                     <TeamCell team={r.constructor} />
                     <span className="leaders__pts">{formatPoints(r.points)}</span>
                   </li>
@@ -154,7 +180,11 @@ function NextRace({ races, lastRound, now }: { races: RaceEvent[]; lastRound: nu
         </p>
       </div>
       {left && (
-        <div className="countdown" role="timer" aria-label={`До старта гонки: ${left.days} д ${left.hours} ч ${left.minutes} мин`}>
+        <div
+          className="countdown"
+          role="timer"
+          aria-label={`До старта гонки: ${left.days} д ${left.hours} ч ${left.minutes} мин`}
+        >
           <CountdownBox value={left.days} label="дней" />
           <CountdownBox value={left.hours} label="часов" />
           <CountdownBox value={left.minutes} label="минут" />
@@ -175,8 +205,7 @@ function CountdownBox({ value, label }: { value: number; label: string }) {
 
 /** Width of the faint bar behind a leader row, relative to the leader's points. */
 function barStyle(points: number | null, leader: number | null | undefined) {
-  const pct = points !== null && leader ? Math.max(4, Math.min(100, (points / leader) * 100)) : 0;
-  return { '--bar': `${pct}%` } as React.CSSProperties;
+  return { '--bar': `${leaderShare(points, leader, 4)}%` } as CSSProperties;
 }
 
 function LastRace({ season, round }: { season: number; round: number }) {
@@ -184,7 +213,9 @@ function LastRace({ season, round }: { season: number; round: number }) {
   if (res.status === 'loading') return <Loading rows={3} />;
   if (res.status === 'error') return <ErrorBox error={res.error} onRetry={res.reload} />;
   const { race, results } = res.data;
-  const podium = results.filter((r) => r.position !== null && r.position <= 3).sort((a, b) => a.position! - b.position!);
+  const podium = results
+    .filter((r) => r.position !== null && r.position <= 3)
+    .sort((a, b) => a.position! - b.position!);
   return (
     <div>
       <Link to={`/${season}/race/${round}`} className="next__name">
@@ -222,7 +253,8 @@ function FavoritesBlock({ season, ds, cs }: { season: number; ds: DS; cs: CS }) 
   if (favs.drivers.length === 0 && favs.constructors.length === 0) {
     return (
       <p className="muted small fav-hint">
-        Совет: отметьте пилотов и команды звёздочкой ☆ в их профилях — они появятся здесь и будут выделены в таблицах и на графике.
+        Совет: отметьте пилотов и команды звёздочкой ☆ в их профилях — они появятся здесь и будут выделены в
+        таблицах и на графике.
       </p>
     );
   }
@@ -236,9 +268,15 @@ function FavoritesBlock({ season, ds, cs }: { season: number; ds: DS; cs: CS }) 
           const row = dRows.find((r) => r.driver.id === id);
           return (
             <li key={`d:${id}`}>
-              <span className="leaders__pos">{row ? row.positionText ?? row.position ?? '—' : '—'}</span>
-              {row ? <DriverCell driver={row.driver} team={row.constructors.at(-1)} /> : <Link to={`/${season}/driver/${id}`}>{id}</Link>}
-              <span className="leaders__pts">{row ? formatPoints(row.points) : <span className="muted small">не в зачёте сезона</span>}</span>
+              <span className="leaders__pos">{row ? (row.positionText ?? row.position ?? '—') : '—'}</span>
+              {row ? (
+                <DriverCell driver={row.driver} team={row.constructors.at(-1)} />
+              ) : (
+                <Link to={`/${season}/driver/${id}`}>{id}</Link>
+              )}
+              <span className="leaders__pts">
+                {row ? formatPoints(row.points) : <span className="muted small">не в зачёте сезона</span>}
+              </span>
             </li>
           );
         })}
@@ -246,9 +284,15 @@ function FavoritesBlock({ season, ds, cs }: { season: number; ds: DS; cs: CS }) 
           const row = cRows.find((r) => r.constructor.id === id);
           return (
             <li key={`c:${id}`}>
-              <span className="leaders__pos">{row ? row.positionText ?? row.position ?? '—' : '—'}</span>
-              {row ? <TeamCell team={row.constructor} /> : <Link to={`/${season}/constructor/${id}`}>{id}</Link>}
-              <span className="leaders__pts">{row ? formatPoints(row.points) : <span className="muted small">не в зачёте сезона</span>}</span>
+              <span className="leaders__pos">{row ? (row.positionText ?? row.position ?? '—') : '—'}</span>
+              {row ? (
+                <TeamCell team={row.constructor} />
+              ) : (
+                <Link to={`/${season}/constructor/${id}`}>{id}</Link>
+              )}
+              <span className="leaders__pts">
+                {row ? formatPoints(row.points) : <span className="muted small">не в зачёте сезона</span>}
+              </span>
             </li>
           );
         })}

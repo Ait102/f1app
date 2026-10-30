@@ -16,7 +16,8 @@ let cachedValue: Favorites = EMPTY;
 
 function sanitize(v: unknown): Favorites {
   const r = (v && typeof v === 'object' ? v : {}) as Record<string, unknown>;
-  const ids = (x: unknown) => (Array.isArray(x) ? x.filter((s): s is string => typeof s === 'string' && /^[a-z0-9_]+$/i.test(s)) : []);
+  const ids = (x: unknown) =>
+    Array.isArray(x) ? x.filter((s): s is string => typeof s === 'string' && /^[a-z0-9_]+$/i.test(s)) : [];
   return { drivers: ids(r.drivers), constructors: ids(r.constructors) };
 }
 

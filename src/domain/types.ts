@@ -6,14 +6,7 @@ export interface Season {
   label: string;
 }
 
-export type SessionKind =
-  | 'FP1'
-  | 'FP2'
-  | 'FP3'
-  | 'SprintQualifying'
-  | 'Sprint'
-  | 'Qualifying'
-  | 'Race';
+export type SessionKind = 'FP1' | 'FP2' | 'FP3' | 'SprintQualifying' | 'Sprint' | 'Qualifying' | 'Race';
 
 export interface Session {
   kind: SessionKind;

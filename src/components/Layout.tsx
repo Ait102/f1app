@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+
 import { localTimeZone, utcOffsetLabel } from '../domain/format';
-import { rememberSeason, rememberedSeason, useSeasonParam, useSeasons } from '../hooks/data';
+import { rememberedSeason, rememberSeason, useSeasonParam, useSeasons } from '../hooks/data';
 
 function SeasonSelect({ season }: { season: number | null }) {
   const seasons = useSeasons();
@@ -78,8 +79,14 @@ export function Layout() {
       </a>
       <header className="header">
         <div className="container header__inner">
-          <Link to={navSeason ? `/${navSeason}` : '/'} className="logo" aria-label="F1 Season Hub — на главную">
-            <span className="logo__mark" aria-hidden="true">F1</span>
+          <Link
+            to={navSeason ? `/${navSeason}` : '/'}
+            className="logo"
+            aria-label="F1 Season Hub — на главную"
+          >
+            <span className="logo__mark" aria-hidden="true">
+              F1
+            </span>
             <span className="logo__text">Season Hub</span>
           </Link>
           <nav className="nav" aria-label="Основная навигация">
@@ -101,13 +108,23 @@ export function Layout() {
       <footer className="footer">
         <div className="container footer__inner">
           <p>
-            Данные: <a href="https://github.com/jolpica/jolpica-f1" target="_blank" rel="noreferrer">Jolpica-F1</a>{' '}
+            Данные:{' '}
+            <a href="https://github.com/jolpica/jolpica-f1" target="_blank" rel="noreferrer">
+              Jolpica-F1
+            </a>{' '}
             (открытый API, совместимый с Ergast), лицензия{' '}
-            <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ru" target="_blank" rel="noreferrer">CC BY-NC-SA 4.0</a>.
-            Некоммерческий неофициальный проект, не связан с Formula 1.
+            <a
+              href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ru"
+              target="_blank"
+              rel="noreferrer"
+            >
+              CC BY-NC-SA 4.0
+            </a>
+            . Некоммерческий неофициальный проект, не связан с Formula 1.
           </p>
           <p>
-            Время показано в зоне <strong>{tz}</strong> ({utcOffsetLabel(tz)}). Наведите на время, чтобы увидеть UTC.
+            Время показано в зоне <strong>{tz}</strong> ({utcOffsetLabel(tz)}). Наведите на время, чтобы
+            увидеть UTC.
           </p>
         </div>
       </footer>

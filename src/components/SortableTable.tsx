@@ -81,7 +81,11 @@ export function SortableTable<T>({ columns, rows, rowKey, caption, rowClassName 
                   {c.sortValue ? (
                     <button type="button" className="th-sort" onClick={() => toggle(c.key)}>
                       <span className={c.abbr ? 'th-full' : undefined}>{c.header}</span>
-                      {c.abbr && <span className="th-abbr" aria-hidden="true">{c.abbr}</span>}
+                      {c.abbr && (
+                        <span className="th-abbr" aria-hidden="true">
+                          {c.abbr}
+                        </span>
+                      )}
                       <span className="th-sort__icon" aria-hidden="true">
                         <svg viewBox="0 0 8 12" width="8" height="12" focusable="false">
                           <path d="M4 0.7 7.5 4.6H0.5z" fill="currentColor" />
@@ -92,7 +96,11 @@ export function SortableTable<T>({ columns, rows, rowKey, caption, rowClassName 
                   ) : (
                     <>
                       <span className={c.abbr ? 'th-full' : undefined}>{c.header}</span>
-                      {c.abbr && <span className="th-abbr" aria-hidden="true">{c.abbr}</span>}
+                      {c.abbr && (
+                        <span className="th-abbr" aria-hidden="true">
+                          {c.abbr}
+                        </span>
+                      )}
                     </>
                   )}
                 </th>

@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import type { Constructor, Driver } from '../domain/types';
+
 import { preloadCircuit } from '../data/circuits';
+import { formatMoment, formatPoints } from '../domain/format';
+import { STATUS_LABELS, type RaceStatus } from '../domain/status';
+import type { Constructor, Driver } from '../domain/types';
 import { useSeasonParam } from '../hooks/data';
 import { useFavorites, type FavKind } from '../hooks/useFavorites';
-import { driverName } from '../domain/mappers';
-import { STATUS_LABELS, type RaceStatus } from '../domain/status';
-import { formatMoment, formatPoints } from '../domain/format';
 
 // Decorative team accents only (not data). Unknown teams get a neutral color.
 const TEAM_COLORS: Record<string, string> = {
@@ -39,7 +39,7 @@ export function DriverCell({
   season?: number;
 }) {
   const routeSeason = useSeasonParam();
-  season = season ?? routeSeason ?? undefined;
+  const linkSeason = season ?? routeSeason;
   const name = (
     <span className="driver__name">
       <span className="driver__given">{driver.givenName} </span>
@@ -49,8 +49,8 @@ export function DriverCell({
   return (
     <span className="driver">
       <span className="team-bar" style={{ background: teamColor(team) }} aria-hidden="true" />
-      {season ? (
-        <Link className="profile-link" to={`/${season}/driver/${driver.id}`}>
+      {linkSeason ? (
+        <Link className="profile-link" to={`/${linkSeason}/driver/${driver.id}`}>
           {name}
         </Link>
       ) : (
@@ -63,13 +63,13 @@ export function DriverCell({
 
 export function TeamCell({ team, season }: { team: Constructor | null; season?: number }) {
   const routeSeason = useSeasonParam();
-  season = season ?? routeSeason ?? undefined;
+  const linkSeason = season ?? routeSeason;
   if (!team) return <span className="muted">—</span>;
   return (
     <span className="team">
       <span className="team-dot" style={{ background: teamColor(team) }} aria-hidden="true" />
-      {season ? (
-        <Link className="profile-link" to={`/${season}/constructor/${team.id}`}>
+      {linkSeason ? (
+        <Link className="profile-link" to={`/${linkSeason}/constructor/${team.id}`}>
           {team.name}
         </Link>
       ) : (
@@ -79,7 +79,15 @@ export function TeamCell({ team, season }: { team: Constructor | null; season?: 
   );
 }
 
-export function CircuitLink({ season, id, name }: { season: number; id: string | null; name: string | null }) {
+export function CircuitLink({
+  season,
+  id,
+  name,
+}: {
+  season: number;
+  id: string | null;
+  name: string | null;
+}) {
   if (!name) return null;
   return id ? (
     <Link
@@ -133,13 +141,6 @@ export function Moment({ date, time }: { date: string | null; time: string | nul
   );
 }
 
-export function matchesDriver(d: Driver, teams: Constructor[], q: string): boolean {
-  const query = q.trim().toLowerCase();
-  if (!query) return true;
-  const hay = [driverName(d), d.code ?? '', d.number ?? '', ...teams.map((t) => t.name)].join(' ').toLowerCase();
-  return hay.includes(query);
-}
-
 export function SearchBox({
   value,
   onChange,
@@ -163,14 +164,25 @@ export function SearchBox({
   );
 }
 
+/** Bar width (%) relative to the leader's points; `min` keeps tiny values visible. Visual only. */
+export function leaderShare(points: number | null, leader: number | null | undefined, min = 0): number {
+  return points !== null && leader ? Math.max(min, Math.min(100, (points / leader) * 100)) : 0;
+}
+
 /** Gold/silver/bronze modifier for positions 1–3. */
 export function posClass(base: string, position: number | null): string {
   return position !== null && position <= 3 ? `${base} pos--${position}` : base;
 }
 
 /** Points with a thin bar showing the share of the leader's points (visual only, no maths on the result). */
-export function PointsWithBar({ points, leader }: { points: number | null; leader: number | null | undefined }) {
-  const pct = points !== null && leader ? Math.max(2, Math.min(100, (points / leader) * 100)) : 0;
+export function PointsWithBar({
+  points,
+  leader,
+}: {
+  points: number | null;
+  leader: number | null | undefined;
+}) {
+  const pct = leaderShare(points, leader, 2);
   return (
     <span className="pts">
       <strong>{formatPoints(points)}</strong>

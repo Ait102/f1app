@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { mockApi } from './fixtures';
 
 // The default fixtures use synthetic circuit ids, so this spec serves its own
@@ -41,7 +42,9 @@ test('race page shows the circuit outline', async ({ page }) => {
   const panel = page.locator('.circuit-panel');
   await expect(panel.getByRole('heading', { name: 'Схема трассы' })).toBeVisible();
   await expect(panel.locator('path').first()).toHaveAttribute('d', /^M\d/);
-  await expect(panel.getByRole('img')).toHaveAccessibleName(/Silverstone Circuit: 18 поворотов, длина 5\.891 км/);
+  await expect(panel.getByRole('img')).toHaveAccessibleName(
+    /Silverstone Circuit: 18 поворотов, длина 5\.891 км/,
+  );
   await expect(panel.getByText('5.891 км')).toBeVisible();
   await expect(panel.getByText('18')).toBeVisible();
 });
@@ -69,8 +72,10 @@ test('older seasons get the layout of their era', async ({ page }) => {
   });
 
   await mockApi(page, (path) => {
-    if (path === '/seasons/') return { status: 200, headers: { 'content-type': 'application/json' }, body: seasonsBody };
-    if (path === '/1998/races/') return { status: 200, headers: { 'content-type': 'application/json' }, body: oldRaces };
+    if (path === '/seasons/')
+      return { status: 200, headers: { 'content-type': 'application/json' }, body: seasonsBody };
+    if (path === '/1998/races/')
+      return { status: 200, headers: { 'content-type': 'application/json' }, body: oldRaces };
     return null;
   });
 

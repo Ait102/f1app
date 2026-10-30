@@ -1,5 +1,5 @@
+import { formatDate, formatMoment, formatPoints, utcOffsetLabel } from './format';
 import { findNextRace, raceStatus } from './status';
-import { formatMoment, formatPoints, utcOffsetLabel } from './format';
 import type { RaceEvent } from './types';
 
 function race(round: number, date: string | null, time: string | null, fp1?: string): RaceEvent {
@@ -52,7 +52,11 @@ describe('raceStatus', () => {
   });
 
   it('findNextRace picks the first upcoming', () => {
-    const list = [race(1, '2026-03-08', '04:00:00Z'), race(2, '2026-03-15', '07:00:00Z'), race(3, '2026-03-29', '05:00:00Z')];
+    const list = [
+      race(1, '2026-03-08', '04:00:00Z'),
+      race(2, '2026-03-15', '07:00:00Z'),
+      race(3, '2026-03-29', '05:00:00Z'),
+    ];
     expect(findNextRace(list, new Date('2026-03-10T00:00:00Z'), 1)?.round).toBe(2);
     expect(findNextRace(list, new Date('2026-12-31T00:00:00Z'), 3)).toBeNull();
   });
@@ -80,6 +84,11 @@ describe('format', () => {
     expect(utcOffsetLabel('Europe/Moscow', new Date('2026-01-01'))).toBe('UTC+3');
     expect(utcOffsetLabel('UTC')).toBe('UTC');
     expect(utcOffsetLabel('Asia/Kolkata', new Date('2026-01-01'))).toBe('UTC+5:30');
+  });
+
+  it('full date without a time-zone shift', () => {
+    expect(formatDate('1998-02-15')).toMatch(/^15 февраля 1998/);
+    expect(formatDate(null)).toBe('Дата не объявлена');
   });
 
   it('points', () => {

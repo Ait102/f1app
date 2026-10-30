@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+
 import { formatPoints } from '../domain/format';
 import { niceAxis, type ProgressSeries } from '../domain/progress';
 import { teamColor } from './bits';
@@ -126,7 +127,9 @@ export function PointsChart({ rounds, series, roundLabel, highlight }: Props) {
             </text>
           ) : null,
         )}
-        {hover !== null && <line x1={x(hover)} x2={x(hover)} y1={M.t} y2={H - M.b} className="chart__cursor" />}
+        {hover !== null && (
+          <line x1={x(hover)} x2={x(hover)} y1={M.t} y2={H - M.b} className="chart__cursor" />
+        )}
         {series.map((s) => {
           const st = styles.get(s.driver.id)!;
           const strong = highlight?.(s.driver.id);
@@ -162,7 +165,11 @@ export function PointsChart({ rounds, series, roundLabel, highlight }: Props) {
           <ol>
             {hovered.map(({ s, p }) => (
               <li key={s.driver.id}>
-                <span className="team-dot" style={{ background: styles.get(s.driver.id)!.color }} aria-hidden="true" />
+                <span
+                  className="team-dot"
+                  style={{ background: styles.get(s.driver.id)!.color }}
+                  aria-hidden="true"
+                />
                 {s.driver.code ?? s.driver.familyName}
                 <strong>{formatPoints(p)}</strong>
               </li>

@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DataState } from '../components/DataState';
+
 import { Moment, StatusBadge } from '../components/bits';
-import { findNextRace, raceStatus, STATUS_LABELS, type RaceStatus } from '../domain/status';
+import { DataState } from '../components/DataState';
 import { preloadCircuit } from '../data/circuits';
+import { findNextRace, raceStatus, STATUS_LABELS, type RaceStatus } from '../domain/status';
 import { useDriverStandings, useRaces } from '../hooks/data';
-import { PageHeader, SeasonGuard, useNow } from './common';
+import { useNow } from '../hooks/useNow';
+import { PageHeader, SeasonGuard } from './common';
 
 type Filter = 'all' | RaceStatus;
 
@@ -35,7 +37,12 @@ function Calendar({ season }: { season: number }) {
           const withStatus = list.map((race) => ({ race, status: raceStatus(race, now, lastRound) }));
           const nextRound = findNextRace(list, now, lastRound)?.round ?? null;
           const present = new Set(withStatus.map((x) => x.status));
-          const filters: Filter[] = ['all', ...(['completed', 'live', 'awaiting', 'upcoming', 'unknown'] as RaceStatus[]).filter((s) => present.has(s))];
+          const filters: Filter[] = [
+            'all',
+            ...(['completed', 'live', 'awaiting', 'upcoming', 'unknown'] as RaceStatus[]).filter((s) =>
+              present.has(s),
+            ),
+          ];
           const shown = filter === 'all' ? withStatus : withStatus.filter((x) => x.status === filter);
           return (
             <>

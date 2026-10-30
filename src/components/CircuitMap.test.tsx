@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+
 import { eraLabel, loadCircuit } from '../data/circuits';
 import { CIRCUIT_SLUGS } from '../data/circuits/map';
 import { CircuitPanel } from './CircuitMap';

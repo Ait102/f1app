@@ -2,6 +2,7 @@
 // They fail when the API is down or its JSON changes in a way our mappers no longer understand.
 // Run: npm run test:contract
 import { beforeAll, describe, expect, it } from 'vitest';
+
 import { createClient } from '../api/client';
 import { createJolpica } from '../api/jolpica';
 import type { RaceEvent } from '../domain/types';
@@ -27,7 +28,9 @@ beforeAll(async () => {
 
 describe(`Jolpica-F1: контракт API`, () => {
   it('последний сезон актуален', () => {
-    expect(season, 'в API нет текущего или прошлого сезона').toBeGreaterThanOrEqual(new Date().getUTCFullYear() - 1);
+    expect(season, 'в API нет текущего или прошлого сезона').toBeGreaterThanOrEqual(
+      new Date().getUTCFullYear() - 1,
+    );
   });
 
   it('календарь разбирается без потерь', async () => {

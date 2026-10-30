@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { mockApi } from './fixtures';
 
 // Opt-in: `npm run test:visual` (see playwright.visual.config.ts).
@@ -27,7 +28,11 @@ test('pages match the baselines', async ({ page }) => {
       await page.locator('main h1').waitFor();
       await page.waitForLoadState('networkidle');
       // skeletons are replaced by content; wait for them to go away before shooting
-      await page.locator('.skeleton').first().waitFor({ state: 'detached' }).catch(() => {});
+      await page
+        .locator('.skeleton')
+        .first()
+        .waitFor({ state: 'detached' })
+        .catch(() => {});
       await page.waitForTimeout(1200);
       await expect(page).toHaveScreenshot(`w${width}${route.replace(/[^a-z0-9]+/gi, '-')}.png`, {
         fullPage: true,

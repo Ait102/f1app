@@ -3,9 +3,9 @@
 // Run once, the result is committed so the app builds offline:
 //   node scripts/build-circuits.mjs
 
-import { mkdir, writeFile, rm } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const REPO = 'https://raw.githubusercontent.com/f1db/f1db/main';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -132,7 +132,10 @@ function eras(comment) {
 function parseLayouts(yml) {
   const [head, ...rest] = yml.split('\nlayouts:');
   const direction = /direction:\s*(\w+)/.exec(head)?.[1] === 'ANTI_CLOCKWISE' ? 'anticlockwise' : 'clockwise';
-  const blocks = rest.join('\nlayouts:').split(/^\s*-\s+id:\s*/m).slice(1);
+  const blocks = rest
+    .join('\nlayouts:')
+    .split(/^\s*-\s+id:\s*/m)
+    .slice(1);
   return blocks.map((b) => {
     const [firstLine, ...tail] = b.split('\n');
     const id = firstLine.match(/^([\w-]+)/)[1];
@@ -220,7 +223,9 @@ ${body}
   files++;
   layoutsTotal += withOutline.length;
   bytes += file.length;
-  console.log(`${slug.padEnd(20)} ${String(withOutline.length).padStart(2)} layouts  ${(file.length / 1024).toFixed(1)} KB`);
+  console.log(
+    `${slug.padEnd(20)} ${String(withOutline.length).padStart(2)} layouts  ${(file.length / 1024).toFixed(1)} KB`,
+  );
 }
 
 const mapBody = Object.entries(MAP)

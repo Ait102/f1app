@@ -1,4 +1,5 @@
 import { defineConfig } from '@playwright/test';
+
 import base from './playwright.config';
 
 // Opt-in visual regression: `npm run test:visual` (add `-- --update` to rewrite

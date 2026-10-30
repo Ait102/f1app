@@ -1,7 +1,8 @@
 import { Link, useParams } from 'react-router-dom';
-import { DataState, ErrorBox, Loading } from '../components/DataState';
+
 import { DriverCell, Moment, Stat, TeamCell } from '../components/bits';
 import { CircuitPanel } from '../components/CircuitMap';
+import { DataState, ErrorBox, Loading } from '../components/DataState';
 import { SortableTable, type Column } from '../components/SortableTable';
 import type { RaceWithResults } from '../domain/types';
 import { useCircuit, useCircuitWinners, useRaces } from '../hooks/data';
@@ -18,7 +19,13 @@ function CircuitProfileView({ season }: { season: number }) {
 }
 
 const winnerColumns: Column<RaceWithResults>[] = [
-  { key: 'season', header: 'Сезон', align: 'center', render: (r) => r.race.seasonYear, sortValue: (r) => r.race.seasonYear },
+  {
+    key: 'season',
+    header: 'Сезон',
+    align: 'center',
+    render: (r) => r.race.seasonYear,
+    sortValue: (r) => r.race.seasonYear,
+  },
   {
     key: 'race',
     header: 'Гран-при',
@@ -28,7 +35,12 @@ const winnerColumns: Column<RaceWithResults>[] = [
   {
     key: 'driver',
     header: 'Победитель',
-    render: (r) => (r.results[0] ? <DriverCell driver={r.results[0].driver} team={r.results[0].constructor} season={r.race.seasonYear} /> : '—'),
+    render: (r) =>
+      r.results[0] ? (
+        <DriverCell driver={r.results[0].driver} team={r.results[0].constructor} season={r.race.seasonYear} />
+      ) : (
+        '—'
+      ),
     sortValue: (r) => r.results[0]?.driver.familyName ?? null,
   },
   {
@@ -49,7 +61,7 @@ function CircuitBody({ season, id }: { season: number; id: string }) {
   const c = circuit.data;
   if (!c) return <NotFoundBlock title="Трасса не найдена" season={season} />;
 
-  const thisSeason = races.status === 'success' ? races.data.find((r) => r.circuitId === id) ?? null : null;
+  const thisSeason = races.status === 'success' ? (races.data.find((r) => r.circuitId === id) ?? null) : null;
   const mapUrl =
     c.lat !== null && c.long !== null
       ? `https://www.openstreetmap.org/?mlat=${c.lat}&mlon=${c.long}#map=14/${c.lat}/${c.long}`
@@ -114,8 +126,19 @@ function CircuitBody({ season, id }: { season: number; id: string }) {
       </div>
 
       <h2 className="section-title">Победители</h2>
-      <DataState state={winners} isEmpty={(w) => w.length === 0} emptyText="Источник не содержит гонок на этой трассе.">
-        {(w) => <SortableTable columns={winnerColumns} rows={w} rowKey={(r) => `${r.race.seasonYear}-${r.race.round}`} caption={`Победители на трассе ${c.name}`} />}
+      <DataState
+        state={winners}
+        isEmpty={(w) => w.length === 0}
+        emptyText="Источник не содержит гонок на этой трассе."
+      >
+        {(w) => (
+          <SortableTable
+            columns={winnerColumns}
+            rows={w}
+            rowKey={(r) => `${r.race.seasonYear}-${r.race.round}`}
+            caption={`Победители на трассе ${c.name}`}
+          />
+        )}
       </DataState>
     </section>
   );

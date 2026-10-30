@@ -1,15 +1,26 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
-import { CircuitLink, DriverCell, Moment, SearchBox, StatusBadge, TeamCell, matchesDriver, posClass } from '../components/bits';
+
+import {
+  CircuitLink,
+  DriverCell,
+  Moment,
+  posClass,
+  SearchBox,
+  StatusBadge,
+  TeamCell,
+} from '../components/bits';
 import { CircuitPanel } from '../components/CircuitMap';
+import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
 import { SortableTable, type Column } from '../components/SortableTable';
 import { formatPoints } from '../domain/format';
+import { matchesDriver } from '../domain/search';
 import { raceStatus, type RaceStatus } from '../domain/status';
 import type { QualifyingResult, RaceEvent, RaceResult } from '../domain/types';
 import { useDriverStandings, useQualifying, useRaceResults, useRaces, useSprint } from '../hooks/data';
-import { PageHeader, SeasonGuard, useNow } from './common';
 import { useFavorites } from '../hooks/useFavorites';
+import { useNow } from '../hooks/useNow';
+import { PageHeader, SeasonGuard } from './common';
 
 export function RacePage() {
   return <SeasonGuard>{(season) => <Race season={season} />}</SeasonGuard>;
@@ -31,7 +42,8 @@ function Race({ season }: { season: number }) {
       <section className="page">
         <h1>Этап не найден</h1>
         <p>
-          В календаре сезона {season} нет этапа {roundParam}. <Link to={`/${season}/calendar`}>К календарю</Link>
+          В календаре сезона {season} нет этапа {roundParam}.{' '}
+          <Link to={`/${season}/calendar`}>К календарю</Link>
         </p>
       </section>
     );
@@ -84,7 +96,9 @@ function Race({ season }: { season: number }) {
               </li>
             ))}
           </ol>
-          {race.sessions.length === 1 && <p className="muted small">Источник не публикует время других сессий этого этапа.</p>}
+          {race.sessions.length === 1 && (
+            <p className="muted small">Источник не публикует время других сессий этого этапа.</p>
+          )}
           <MetaLine meta={races.meta} />
         </aside>
 
@@ -150,15 +164,48 @@ function resultColumns(): Column<RaceResult>[] {
       header: 'Позиция',
       abbr: 'Поз.',
       align: 'center',
-      render: (r) => <span className={posClass('pos', r.position)}>{r.positionText ?? r.position ?? '—'}</span>,
+      render: (r) => (
+        <span className={posClass('pos', r.position)}>{r.positionText ?? r.position ?? '—'}</span>
+      ),
       sortValue: (r) => r.position,
     },
-    { key: 'driver', header: 'Пилот', render: (r) => <DriverCell driver={r.driver} team={r.constructor} />, sortValue: (r) => r.driver.familyName },
-    { key: 'team', header: 'Команда', optional: true, render: (r) => <TeamCell team={r.constructor} />, sortValue: (r) => r.constructor?.name ?? null },
-    { key: 'grid', header: 'Старт', optional: true, align: 'right', render: (r) => (r.grid === 0 ? 'пит-лейн' : r.grid ?? '—'), sortValue: (r) => r.grid },
-    { key: 'laps', header: 'Круги', optional: true, align: 'right', render: (r) => r.laps ?? '—', sortValue: (r) => r.laps },
+    {
+      key: 'driver',
+      header: 'Пилот',
+      render: (r) => <DriverCell driver={r.driver} team={r.constructor} />,
+      sortValue: (r) => r.driver.familyName,
+    },
+    {
+      key: 'team',
+      header: 'Команда',
+      optional: true,
+      render: (r) => <TeamCell team={r.constructor} />,
+      sortValue: (r) => r.constructor?.name ?? null,
+    },
+    {
+      key: 'grid',
+      header: 'Старт',
+      optional: true,
+      align: 'right',
+      render: (r) => (r.grid === 0 ? 'пит-лейн' : (r.grid ?? '—')),
+      sortValue: (r) => r.grid,
+    },
+    {
+      key: 'laps',
+      header: 'Круги',
+      optional: true,
+      align: 'right',
+      render: (r) => r.laps ?? '—',
+      sortValue: (r) => r.laps,
+    },
     { key: 'time', header: 'Время / статус', abbr: 'Время', render: (r) => r.time ?? r.status ?? '—' },
-    { key: 'pts', header: 'Очки', align: 'right', render: (r) => <strong>{formatPoints(r.points)}</strong>, sortValue: (r) => r.points },
+    {
+      key: 'pts',
+      header: 'Очки',
+      align: 'right',
+      render: (r) => <strong>{formatPoints(r.points)}</strong>,
+      sortValue: (r) => r.points,
+    },
   ];
 }
 
@@ -179,7 +226,11 @@ function ResultsTable({ rows, caption }: { rows: RaceResult[]; caption: string }
           rows={filtered}
           rowKey={(r) => r.driver.id}
           caption={caption}
-          rowClassName={(r) => (isFav('drivers', r.driver.id) || (r.constructor && isFav('constructors', r.constructor.id)) ? 'row--fav' : undefined)}
+          rowClassName={(r) =>
+            isFav('drivers', r.driver.id) || (r.constructor && isFav('constructors', r.constructor.id))
+              ? 'row--fav'
+              : undefined
+          }
         />
       )}
     </>
@@ -189,7 +240,11 @@ function ResultsTable({ rows, caption }: { rows: RaceResult[]; caption: string }
 function RaceResultsTab({ race }: { race: RaceEvent }) {
   const res = useRaceResults(race.seasonYear, race.round);
   return (
-    <DataState state={res} isEmpty={(d) => d.results.length === 0} emptyText="Результаты гонки пока недоступны у источника.">
+    <DataState
+      state={res}
+      isEmpty={(d) => d.results.length === 0}
+      emptyText="Результаты гонки пока недоступны у источника."
+    >
       {(d) => <ResultsTable rows={d.results} caption={`Результаты гонки: ${race.name}`} />}
     </DataState>
   );
@@ -198,16 +253,38 @@ function RaceResultsTab({ race }: { race: RaceEvent }) {
 function SprintTab({ race }: { race: RaceEvent }) {
   const res = useSprint(race.seasonYear, race.round);
   return (
-    <DataState state={res} isEmpty={(d) => d.length === 0} emptyText="Результаты спринта недоступны у источника.">
+    <DataState
+      state={res}
+      isEmpty={(d) => d.length === 0}
+      emptyText="Результаты спринта недоступны у источника."
+    >
       {(rows) => <ResultsTable rows={rows} caption={`Результаты спринта: ${race.name}`} />}
     </DataState>
   );
 }
 
 const qualiColumns: Column<QualifyingResult>[] = [
-  { key: 'pos', header: 'Позиция', abbr: 'Поз.', align: 'center', render: (r) => <span className={posClass('pos', r.position)}>{r.position ?? '—'}</span>, sortValue: (r) => r.position },
-  { key: 'driver', header: 'Пилот', render: (r) => <DriverCell driver={r.driver} team={r.constructor} />, sortValue: (r) => r.driver.familyName },
-  { key: 'team', header: 'Команда', optional: true, render: (r) => <TeamCell team={r.constructor} />, sortValue: (r) => r.constructor?.name ?? null },
+  {
+    key: 'pos',
+    header: 'Позиция',
+    abbr: 'Поз.',
+    align: 'center',
+    render: (r) => <span className={posClass('pos', r.position)}>{r.position ?? '—'}</span>,
+    sortValue: (r) => r.position,
+  },
+  {
+    key: 'driver',
+    header: 'Пилот',
+    render: (r) => <DriverCell driver={r.driver} team={r.constructor} />,
+    sortValue: (r) => r.driver.familyName,
+  },
+  {
+    key: 'team',
+    header: 'Команда',
+    optional: true,
+    render: (r) => <TeamCell team={r.constructor} />,
+    sortValue: (r) => r.constructor?.name ?? null,
+  },
   { key: 'q1', header: 'Q1', align: 'right', render: (r) => r.q1 ?? '—' },
   { key: 'q2', header: 'Q2', align: 'right', render: (r) => r.q2 ?? '—' },
   { key: 'q3', header: 'Q3', align: 'right', render: (r) => r.q3 ?? '—' },
@@ -216,8 +293,19 @@ const qualiColumns: Column<QualifyingResult>[] = [
 function QualifyingTab({ race }: { race: RaceEvent }) {
   const res = useQualifying(race.seasonYear, race.round);
   return (
-    <DataState state={res} isEmpty={(d) => d.length === 0} emptyText="Результаты квалификации недоступны у источника.">
-      {(rows) => <SortableTable columns={qualiColumns} rows={rows} rowKey={(r) => r.driver.id} caption={`Квалификация: ${race.name}`} />}
+    <DataState
+      state={res}
+      isEmpty={(d) => d.length === 0}
+      emptyText="Результаты квалификации недоступны у источника."
+    >
+      {(rows) => (
+        <SortableTable
+          columns={qualiColumns}
+          rows={rows}
+          rowKey={(r) => r.driver.id}
+          caption={`Квалификация: ${race.name}`}
+        />
+      )}
     </DataState>
   );
 }

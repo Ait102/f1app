@@ -1,18 +1,19 @@
 import { useEffect, useRef } from 'react';
 import { HashRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
-import { Layout } from './components/Layout';
+
 import { ErrorBox, Loading } from './components/DataState';
+import { Layout } from './components/Layout';
 import { rememberedSeason, useSeasons } from './hooks/data';
-import { HomePage } from './pages/HomePage';
-import { CalendarPage } from './pages/CalendarPage';
-import { RacePage } from './pages/RacePage';
-import { DriversPage } from './pages/DriversPage';
-import { ConstructorsPage } from './pages/ConstructorsPage';
 import { AboutPage } from './pages/AboutPage';
-import { DriverPage } from './pages/DriverPage';
-import { ConstructorPage } from './pages/ConstructorPage';
-import { CircuitPage } from './pages/CircuitPage';
+import { CalendarPage } from './pages/CalendarPage';
 import { ChartPage } from './pages/ChartPage';
+import { CircuitPage } from './pages/CircuitPage';
+import { ConstructorPage } from './pages/ConstructorPage';
+import { ConstructorsPage } from './pages/ConstructorsPage';
+import { DriverPage } from './pages/DriverPage';
+import { DriversPage } from './pages/DriversPage';
+import { HomePage } from './pages/HomePage';
+import { RacePage } from './pages/RacePage';
 
 function RootRedirect() {
   const seasons = useSeasons();
@@ -30,7 +31,9 @@ function RootRedirect() {
   }
   const remembered = rememberedSeason();
   const target =
-    seasons.data.find((s) => s.year === remembered)?.year ?? seasons.data[0]?.year ?? new Date().getFullYear();
+    seasons.data.find((s) => s.year === remembered)?.year ??
+    seasons.data[0]?.year ??
+    new Date().getFullYear();
   return <Navigate to={`/${target}`} replace />;
 }
 

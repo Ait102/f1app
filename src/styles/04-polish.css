@@ -93,9 +93,15 @@
 }
 
 /* Podium colours */
-.pos--1 { color: var(--gold); }
-.pos--2 { color: var(--silver); }
-.pos--3 { color: var(--bronze); }
+.pos--1 {
+  color: var(--gold);
+}
+.pos--2 {
+  color: var(--silver);
+}
+.pos--3 {
+  color: var(--bronze);
+}
 
 /* Leader lists with a faint relative bar */
 .leaders li {
@@ -169,4 +175,3 @@
     transition: none;
   }
 }
-

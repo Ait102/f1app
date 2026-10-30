@@ -2,15 +2,15 @@
 // Every accessor is defensive: unknown shapes become null, never invented data.
 import type {
   Circuit,
-  DriverProfile,
-  RaceWithResults,
   Constructor,
   ConstructorStanding,
   Driver,
+  DriverProfile,
   DriverStanding,
   QualifyingResult,
   RaceEvent,
   RaceResult,
+  RaceWithResults,
   Season,
   Session,
   SessionKind,
@@ -252,7 +252,9 @@ export function mergeRacesByRound(items: unknown[], resultsField = 'Results'): R
     if (existing) existing.results.push(...results);
     else byKey.set(key, { race, results });
   }
-  return [...byKey.values()].sort((a, b) => a.race.seasonYear - b.race.seasonYear || a.race.round - b.race.round);
+  return [...byKey.values()].sort(
+    (a, b) => a.race.seasonYear - b.race.seasonYear || a.race.round - b.race.round,
+  );
 }
 
 /** Full years between birth date and `at`; null when the date is unknown. */

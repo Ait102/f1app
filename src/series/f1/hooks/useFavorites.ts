@@ -2,7 +2,7 @@
 import { useCallback, useSyncExternalStore } from 'react';
 
 export type FavKind = 'drivers' | 'constructors';
-export interface Favorites {
+interface Favorites {
   drivers: string[];
   constructors: string[];
 }
@@ -39,7 +39,7 @@ export function readFavorites(): Favorites {
   return cachedValue;
 }
 
-export function writeFavorites(next: Favorites): void {
+function writeFavorites(next: Favorites): void {
   try {
     localStorage.setItem(KEY, JSON.stringify(next));
   } catch {

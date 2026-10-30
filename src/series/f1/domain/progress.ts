@@ -16,7 +16,7 @@ export interface ProgressSeries {
   points: Array<number | null>;
 }
 
-export interface Progress {
+interface Progress {
   rounds: number[];
   series: ProgressSeries[];
   maxPoints: number;

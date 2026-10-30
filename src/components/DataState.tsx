@@ -41,7 +41,7 @@ export function ErrorBox({ error, onRetry }: { error: unknown; onRetry?: () => v
   );
 }
 
-export function EmptyBox({ children }: { children: ReactNode }) {
+function EmptyBox({ children }: { children: ReactNode }) {
   return <div className="state state--empty">{children}</div>;
 }
 

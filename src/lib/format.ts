@@ -35,7 +35,7 @@ export function utcOffsetLabel(timeZone: string, at: Date = new Date()): string 
   }
 }
 
-export interface FormattedMoment {
+interface FormattedMoment {
   /** Human text in the display zone. */
   text: string;
   /** Original source value, kept for tooltips. */

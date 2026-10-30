@@ -26,7 +26,7 @@ export function arr(v: unknown): unknown[] {
   return Array.isArray(v) ? v : [];
 }
 
-export function str(v: unknown): string | null {
+function str(v: unknown): string | null {
   if (typeof v === 'string') {
     const t = v.trim();
     return t === '' ? null : t;

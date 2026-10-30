@@ -2,7 +2,7 @@
 import type { Page, Route } from '@playwright/test';
 
 /** Frozen "now": after round 1, before round 2 of 2026. */
-export const NOW = new Date('2026-03-10T12:00:00Z');
+const NOW = new Date('2026-03-10T12:00:00Z');
 
 const driver = (id: string, given: string, family: string, code: string) => ({
   driverId: id,
@@ -184,9 +184,7 @@ function respond(path: string): object | null {
   return null;
 }
 
-export type Override = (
-  path: string,
-) => { status: number; headers?: Record<string, string>; body?: string } | null;
+type Override = (path: string) => { status: number; headers?: Record<string, string>; body?: string } | null;
 
 /** Serves fixtures for every Jolpica request; `override` can inject failures. */
 export async function mockApi(page: Page, override?: Override): Promise<string[]> {

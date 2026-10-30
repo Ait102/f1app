@@ -54,7 +54,7 @@ function mergeMeta(metas: DataMeta[]): DataMeta {
 }
 
 /** Loads every page of a list endpoint and concatenates the picked items. */
-export async function getPaged(
+async function getPaged(
   api: ApiClient,
   path: string,
   pick: (mr: MR) => unknown[],
@@ -81,7 +81,7 @@ const racesOf = (mr: MR) => arr(rec(mr.RaceTable).Races);
 const firstRace = (mr: MR) => rec(racesOf(mr)[0]);
 const standingsList = (mr: MR) => rec(arr(rec(mr.StandingsTable).StandingsLists)[0]);
 
-export function seasonPath(season: number | string): string {
+function seasonPath(season: number | string): string {
   const s = String(season);
   if (!/^\d{4}$/.test(s)) throw new Error(`Invalid season: ${s}`);
   return `/${s}`;
@@ -93,7 +93,7 @@ function roundPath(season: number | string, round: number | string): string {
   return `${seasonPath(season)}/${r}`;
 }
 
-export function idPath(kind: 'drivers' | 'constructors' | 'circuits', id: string): string {
+function idPath(kind: 'drivers' | 'constructors' | 'circuits', id: string): string {
   if (!/^[a-z0-9_]+$/i.test(id)) throw new Error(`Invalid ${kind} id: ${id}`);
   return `/${kind}/${id}`;
 }

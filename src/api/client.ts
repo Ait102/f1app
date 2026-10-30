@@ -3,7 +3,7 @@
 // successful response.
 import type { DataMeta, Fetched } from './types';
 
-export type ApiErrorKind = 'network' | 'timeout' | 'http' | 'rate-limit' | 'parse';
+type ApiErrorKind = 'network' | 'timeout' | 'http' | 'rate-limit' | 'parse';
 
 export class ApiError extends Error {
   readonly kind: ApiErrorKind;

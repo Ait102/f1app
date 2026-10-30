@@ -6,6 +6,7 @@ import { formatPoints } from '../domain/format';
 import type { DriverStanding } from '../domain/types';
 import { useDriverStandings } from '../hooks/data';
 import { PageHeader, SeasonGuard } from './common';
+import { useFavorites } from '../hooks/useFavorites';
 
 const columns: Column<DriverStanding>[] = [
   { key: 'pos', header: 'Позиция', abbr: 'Поз.', align: 'center', render: (r) => <span className="pos">{r.positionText ?? r.position ?? '—'}</span>, sortValue: (r) => r.position },
@@ -29,6 +30,7 @@ export function DriversPage() {
 function Drivers({ season }: { season: number }) {
   const ds = useDriverStandings(season);
   const [q, setQ] = useState('');
+  const { isFav } = useFavorites();
   return (
     <section className="page">
       <PageHeader eyebrow={`Сезон ${season}`} title="Личный зачёт">
@@ -45,7 +47,7 @@ function Drivers({ season }: { season: number }) {
               {rows.length === 0 ? (
                 <p className="muted">Ничего не найдено.</p>
               ) : (
-                <SortableTable columns={columns} rows={rows} rowKey={(r) => r.driver.id} caption={`Личный зачёт ${season}`} />
+                <SortableTable columns={columns} rows={rows} rowKey={(r) => r.driver.id} caption={`Личный зачёт ${season}`} rowClassName={(r) => (isFav('drivers', r.driver.id) ? 'row--fav' : undefined)} />
               )}
             </>
           );

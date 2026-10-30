@@ -8,6 +8,7 @@ import { raceStatus, type RaceStatus } from '../domain/status';
 import type { QualifyingResult, RaceEvent, RaceResult } from '../domain/types';
 import { useDriverStandings, useQualifying, useRaceResults, useRaces, useSprint } from '../hooks/data';
 import { PageHeader, SeasonGuard, useNow } from './common';
+import { useFavorites } from '../hooks/useFavorites';
 
 export function RacePage() {
   return <SeasonGuard>{(season) => <Race season={season} />}</SeasonGuard>;
@@ -162,6 +163,7 @@ const RESULT_COLUMNS = resultColumns();
 
 function ResultsTable({ rows, caption }: { rows: RaceResult[]; caption: string }) {
   const [q, setQ] = useState('');
+  const { isFav } = useFavorites();
   const filtered = rows.filter((r) => matchesDriver(r.driver, r.constructor ? [r.constructor] : [], q));
   return (
     <>
@@ -169,7 +171,13 @@ function ResultsTable({ rows, caption }: { rows: RaceResult[]; caption: string }
       {filtered.length === 0 ? (
         <p className="muted">Ничего не найдено.</p>
       ) : (
-        <SortableTable columns={RESULT_COLUMNS} rows={filtered} rowKey={(r) => r.driver.id} caption={caption} />
+        <SortableTable
+          columns={RESULT_COLUMNS}
+          rows={filtered}
+          rowKey={(r) => r.driver.id}
+          caption={caption}
+          rowClassName={(r) => (isFav('drivers', r.driver.id) || (r.constructor && isFav('constructors', r.constructor.id)) ? 'row--fav' : undefined)}
+        />
       )}
     </>
   );

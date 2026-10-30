@@ -33,7 +33,8 @@ import type {
   Season,
   Standings,
 } from '../domain/types';
-import { client as defaultClient, type ApiClient, type GetOptions } from './client';
+import { ApiError, client as defaultClient, type ApiClient, type GetOptions } from './client';
+import type { RoundStandings } from '../domain/progress';
 
 const PAGE_LIMIT = 100;
 const MAX_PAGES = 20;
@@ -194,6 +195,41 @@ export function createJolpica(api: ApiClient = defaultClient) {
         data: { seasonYear: season, round: num(standingsList(res.data.mr).round), rows: mapDriverStandings(res.data.items) },
         meta: res.meta,
       };
+    },
+
+    /**
+     * Loads standings after every round 1..lastRound (one request per round,
+     * throttled and cached by the client). Rounds that fail are reported, not guessed.
+     */
+    async getStandingsProgress(
+      season: number,
+      lastRound: number,
+      opts?: GetOptions & { onProgress?: (done: number, total: number) => void },
+    ): Promise<Fetched<{ rounds: RoundStandings[]; failed: number[]; firstError: unknown }>> {
+      const rounds: RoundStandings[] = [];
+      const failed: number[] = [];
+      const metas: DataMeta[] = [];
+      let firstError: unknown = null;
+      for (let r = 1; r <= lastRound; r++) {
+        try {
+          const res = await getPaged(api, `${roundPath(season, r)}/driverstandings/`, (mr) => arr(standingsList(mr).DriverStandings), opts);
+          const rows = mapDriverStandings(res.data.items);
+          if (rows.length) rounds.push({ round: r, rows });
+          else failed.push(r);
+          metas.push(res.meta);
+        } catch (e) {
+          failed.push(r);
+          firstError ??= e;
+          // Stop on rate limiting instead of hammering the API.
+          if (e instanceof ApiError && e.kind === 'rate-limit') {
+            for (let k = r + 1; k <= lastRound; k++) failed.push(k);
+            break;
+          }
+        }
+        opts?.onProgress?.(r, lastRound);
+      }
+      if (metas.length === 0) throw firstError ?? new Error('No standings');
+      return { data: { rounds, failed, firstError }, meta: mergeMeta(metas) };
     },
 
     async getConstructorStandings(season: number, opts?: GetOptions): Promise<Fetched<Standings<ConstructorStanding>>> {

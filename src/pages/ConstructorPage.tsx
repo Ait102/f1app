@@ -1,6 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
-import { DriverCell, Stat, teamColor } from '../components/bits';
+import { DriverCell, FavButton, Stat, teamColor } from '../components/bits';
 import { SortableTable, type Column } from '../components/SortableTable';
 import { formatPoints } from '../domain/format';
 import type { Driver, RaceWithResults } from '../domain/types';
@@ -37,6 +37,7 @@ function ConstructorBody({ season, id }: { season: number; id: string }) {
       <PageHeader eyebrow="Команда" title={team.name}>
         <div className="team-stripe" style={{ background: teamColor(team) }} aria-hidden="true" />
         {team.nationality && <p className="lead">{team.nationality}</p>}
+        <FavButton kind="constructors" id={team.id} name={team.name} />
         {team.url && (
           <p>
             <a href={team.url} target="_blank" rel="noreferrer">

@@ -78,7 +78,7 @@ test('network failure keeps the UI working', async ({ page }) => {
 test('mobile layout has no horizontal scroll', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await mockApi(page);
-  for (const path of ['./#/2026', './#/2026/calendar', './#/2026/race/1', './#/2026/drivers', './#/2026/driver/russell', './#/2026/constructor/mercedes', './#/2026/circuit/c1']) {
+  for (const path of ['./#/2026', './#/2026/calendar', './#/2026/race/1', './#/2026/drivers', './#/2026/driver/russell', './#/2026/constructor/mercedes', './#/2026/circuit/c1', './#/2026/chart']) {
     await page.goto(path);
     await expect(page.locator('main h1')).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -147,4 +147,41 @@ test('unknown driver shows a not-found message', async ({ page }) => {
   await mockApi(page);
   await page.goto('./#/2026/driver/nobody');
   await expect(page.getByRole('heading', { name: 'Пилот не найден' })).toBeVisible();
+});
+
+test('championship chart draws lines and a data table', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./#/2026');
+  await page.getByRole('link', { name: 'График' }).click();
+  await expect(page.getByRole('heading', { name: 'Борьба за чемпионство' })).toBeVisible();
+  await expect(page.locator('.chart__svg path[data-driver]')).toHaveCount(3);
+  await expect(page.locator('.legend li')).toHaveCount(3);
+  await page.getByText('Таблица очков по этапам').click();
+  await expect(page.locator('.chart-table tbody tr').first()).toContainText('25');
+});
+
+test('chart shows an error instead of a partial picture', async ({ page }) => {
+  // Fixtures have one finished round; when it fails nothing is drawn.
+  await mockApi(page, (path) => (path === '/2026/1/driverstandings/' ? { status: 500 } : null));
+  await page.goto('./#/2026/chart');
+  await expect(page.getByRole('alert')).toContainText('HTTP 500');
+  await expect(page.locator('.chart__svg')).toHaveCount(0);
+});
+
+test('favourite from profile shows on home and highlights rows', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./#/2026/driver/max_verstappen');
+  await page.getByRole('button', { name: /Добавить .* в избранное/ }).click();
+  await expect(page.getByRole('button', { name: /Убрать .* из избранного/ })).toHaveAttribute('aria-pressed', 'true');
+
+  await page.goto('./#/2026');
+  await expect(page.getByRole('heading', { name: /Избранное/ })).toBeVisible();
+
+  await page.goto('./#/2026/drivers');
+  await expect(page.locator('tr.row--fav')).toHaveCount(1);
+  await expect(page.locator('tr.row--fav')).toContainText('Verstappen');
+
+  // Survives reload.
+  await page.reload();
+  await expect(page.locator('tr.row--fav')).toHaveCount(1);
 });

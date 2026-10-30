@@ -59,6 +59,7 @@ export function Layout() {
         [`/${navSeason}/calendar`, 'Календарь'],
         [`/${navSeason}/drivers`, 'Пилоты'],
         [`/${navSeason}/constructors`, 'Конструкторы'],
+        [`/${navSeason}/chart`, 'График'],
       ]
     : [];
 

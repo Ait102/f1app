@@ -6,6 +6,7 @@ import { formatPoints } from '../domain/format';
 import type { ConstructorStanding } from '../domain/types';
 import { useConstructorStandings } from '../hooks/data';
 import { PageHeader, SeasonGuard } from './common';
+import { useFavorites } from '../hooks/useFavorites';
 
 const columns: Column<ConstructorStanding>[] = [
   { key: 'pos', header: 'Позиция', abbr: 'Поз.', align: 'center', render: (r) => <span className="pos">{r.positionText ?? r.position ?? '—'}</span>, sortValue: (r) => r.position },
@@ -22,6 +23,7 @@ export function ConstructorsPage() {
 function Constructors({ season }: { season: number }) {
   const cs = useConstructorStandings(season);
   const [q, setQ] = useState('');
+  const { isFav } = useFavorites();
   return (
     <section className="page">
       <PageHeader eyebrow={`Сезон ${season}`} title="Кубок конструкторов">
@@ -44,7 +46,7 @@ function Constructors({ season }: { season: number }) {
               {rows.length === 0 ? (
                 <p className="muted">Ничего не найдено.</p>
               ) : (
-                <SortableTable columns={columns} rows={rows} rowKey={(r) => r.constructor.id} caption={`Кубок конструкторов ${season}`} />
+                <SortableTable columns={columns} rows={rows} rowKey={(r) => r.constructor.id} caption={`Кубок конструкторов ${season}`} rowClassName={(r) => (isFav('constructors', r.constructor.id) ? 'row--fav' : undefined)} />
               )}
             </>
           );

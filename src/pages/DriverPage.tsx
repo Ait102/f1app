@@ -1,6 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { DataState, ErrorBox, Loading, MetaLine } from '../components/DataState';
-import { Stat, TeamCell } from '../components/bits';
+import { FavButton, Stat, TeamCell } from '../components/bits';
 import { SortableTable, type Column } from '../components/SortableTable';
 import { formatPoints, formatShortDate } from '../domain/format';
 import { ageAt, driverName } from '../domain/mappers';
@@ -44,6 +44,7 @@ function DriverBody({ season, id }: { season: number; id: string }) {
       </nav>
       <PageHeader eyebrow={`Пилот${d.code ? ' · ' + d.code : ''}`} title={driverName(d)}>
         {facts.length > 0 && <p className="lead">{facts.join(' · ')}</p>}
+        <FavButton kind="drivers" id={d.id} name={driverName(d)} />
         {d.url && (
           <p>
             <a href={d.url} target="_blank" rel="noreferrer">

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { Constructor, Driver } from '../domain/types';
 import { useSeasonParam } from '../hooks/data';
+import { useFavorites, type FavKind } from '../hooks/useFavorites';
 import { driverName } from '../domain/mappers';
 import { STATUS_LABELS, type RaceStatus } from '../domain/status';
 import { formatMoment } from '../domain/format';
@@ -80,6 +81,22 @@ export function TeamCell({ team, season }: { team: Constructor | null; season?: 
 export function CircuitLink({ season, id, name }: { season: number; id: string | null; name: string | null }) {
   if (!name) return null;
   return id ? <Link to={`/${season}/circuit/${id}`}>{name}</Link> : <>{name}</>;
+}
+
+export function FavButton({ kind, id, name }: { kind: FavKind; id: string; name: string }) {
+  const { isFav, toggle } = useFavorites();
+  const on = isFav(kind, id);
+  return (
+    <button
+      type="button"
+      className={`fav-btn${on ? ' fav-btn--on' : ''}`}
+      aria-pressed={on}
+      aria-label={on ? `Убрать ${name} из избранного` : `Добавить ${name} в избранное`}
+      onClick={() => toggle(kind, id)}
+    >
+      <span aria-hidden="true">{on ? '★' : '☆'}</span> {on ? 'В избранном' : 'В избранное'}
+    </button>
+  );
 }
 
 /** Small "label / value" stat tile. Unknown values show as a dash. */

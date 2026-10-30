@@ -967,3 +967,156 @@ select {
 .prose li {
   margin-bottom: 6px;
 }
+
+/* Favourites */
+.fav-btn {
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 14px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.fav-btn:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.fav-btn--on {
+  color: var(--gold);
+  border-color: rgba(245, 197, 66, 0.6);
+}
+
+.table tbody tr.row--fav {
+  background: rgba(245, 197, 66, 0.08);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+
+.fav-hint {
+  margin-top: 8px;
+}
+
+/* Chart */
+.chart-card {
+  padding: 16px;
+}
+
+.chart {
+  position: relative;
+}
+
+.chart__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: pan-y;
+}
+
+.chart__svg:focus-visible {
+  outline-offset: 4px;
+}
+
+.chart__grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.chart__axis {
+  fill: var(--muted);
+  font-size: 13px;
+  font-family: var(--font);
+}
+
+.chart__cursor {
+  stroke: var(--muted);
+  stroke-dasharray: 3 4;
+}
+
+.chart__tip {
+  position: absolute;
+  top: 8px;
+  transform: translateX(12px);
+  background: rgba(13, 14, 18, 0.95);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  pointer-events: none;
+  min-width: 150px;
+  max-height: 90%;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.chart__tip--left {
+  transform: translateX(calc(-100% - 12px));
+}
+
+.chart__tip-title {
+  margin: 0 0 4px;
+  font-weight: 700;
+}
+
+.chart__tip ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.chart__tip li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chart__tip strong {
+  margin-left: auto;
+  padding-left: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.legend {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 6px 16px;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend li .muted {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-loading {
+  max-width: 420px;
+}
+
+.chart-table {
+  margin-top: 16px;
+}
+
+.chart-table summary {
+  cursor: pointer;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.chart-table th[scope='row'] {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: var(--surface);
+}

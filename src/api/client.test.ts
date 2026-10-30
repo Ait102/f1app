@@ -155,3 +155,37 @@ describe('profile endpoints', () => {
     await expect(createJolpica(client).getDriver('../x')).rejects.toThrow(/Invalid drivers id/);
   });
 });
+
+describe('standings progress', () => {
+  const page = (round: string) =>
+    ok({ MRData: { total: '1', StandingsTable: { StandingsLists: [{ round, DriverStandings: [{ position: '1', points: '25', Driver: { driverId: 'a', familyName: 'A' } }] }] } } });
+
+  it('loads every round and reports progress', async () => {
+    const f = vi.fn(async (url: RequestInfo | URL) => page(String(url).match(/2026\/(\d+)\//)![1])) as unknown as typeof fetch;
+    const { client } = setup(f);
+    const seen: number[] = [];
+    const res = await createJolpica(client).getStandingsProgress(2026, 3, { onProgress: (d) => seen.push(d) });
+    expect(res.data.rounds.map((r) => r.round)).toEqual([1, 2, 3]);
+    expect(res.data.failed).toEqual([]);
+    expect(seen).toEqual([1, 2, 3]);
+  });
+
+  it('marks failed rounds instead of guessing', async () => {
+    const f = vi.fn(async (url: RequestInfo | URL) =>
+      String(url).includes('/2026/2/') ? new Response('x', { status: 500 }) : page('1'),
+    ) as unknown as typeof fetch;
+    const { client } = setup(f);
+    const res = await createJolpica(client).getStandingsProgress(2026, 3);
+    expect(res.data.failed).toEqual([2]);
+  });
+
+  it('stops on rate limiting', async () => {
+    const f = vi.fn(async (url: RequestInfo | URL) =>
+      String(url).includes('/2026/1/') ? page('1') : new Response('', { status: 429 }),
+    ) as unknown as typeof fetch;
+    const { client } = setup(f);
+    const res = await createJolpica(client).getStandingsProgress(2026, 5);
+    expect(res.data.failed).toEqual([2, 3, 4, 5]);
+    expect(f).toHaveBeenCalledTimes(2);
+  });
+});

@@ -68,6 +68,10 @@ function respond(path: string): object | null {
     const rows = driverStandings[+m[1]] ?? [];
     return mr(rows.length, { StandingsTable: { StandingsLists: [{ season: m[1], round: '1', DriverStandings: rows }] } });
   }
+  if ((m = path.match(/^\/(\d{4})\/(\d+)\/driverstandings\/$/))) {
+    const rows = driverStandings[+m[1]] ?? [];
+    return mr(rows.length, { StandingsTable: { StandingsLists: [{ season: m[1], round: m[2], DriverStandings: rows }] } });
+  }
   if ((m = path.match(/^\/(\d{4})\/constructorstandings\/$/))) {
     const rows = [
       { position: '1', positionText: '1', points: '43', wins: '1', Constructor: MER },

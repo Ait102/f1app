@@ -132,13 +132,6 @@ select {
   cursor: pointer;
 }
 
-.tag {
-  display: inline-block;
-  font-weight: 700;
-  border: 1px solid var(--border);
-  align-self: flex-start;
-}
-
 /* Status badges */
 .badge {
   display: inline-block;

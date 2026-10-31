@@ -4,7 +4,7 @@
 // shown in a circle in the team color. Every file needs a row here with its source and licence.
 // Without a row (or if the file fails to load) the team gets a badge in its color.
 
-export interface LogoEntry {
+interface LogoEntry {
   /** File name in public/logos/, e.g. "ferrari.svg". */
   file: string;
   /** Where the file came from (link). */

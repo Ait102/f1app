@@ -51,7 +51,7 @@ interface CacheEntry {
   fetchedAt: number;
 }
 
-export interface ClientOptions {
+interface ClientOptions {
   fetchFn?: typeof fetch;
   now?: () => number;
   storage?: Storage | null;
@@ -263,7 +263,7 @@ export function createClient(options: ClientOptions) {
     return p;
   }
 
-  return { get, clearMemory: () => memory.clear() };
+  return { get };
 }
 
 export type ApiClient = ReturnType<typeof createClient>;

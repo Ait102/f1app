@@ -134,11 +134,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.race-card .tag {
-  align-self: flex-start;
-  margin-top: 2px;
-}
-
 /* ---------- Этап ---------- */
 
 .crumbs {

@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
 
-export type SortValue = number | string | null;
+type SortValue = number | string | null;
 
 export interface Column<T> {
   key: string;

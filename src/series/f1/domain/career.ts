@@ -73,7 +73,7 @@ export function bestFinish(history: SeasonStanding[]): { position: number; seaso
   };
 }
 
-export interface SeasonPair {
+interface SeasonPair {
   season: number;
   a: SeasonStanding | null;
   b: SeasonStanding | null;

@@ -2,7 +2,7 @@
 // Austrian Grand Prix 2026, CC BY-SA 4.0). The author and licence are read
 // from Commons at run time and shown under the photo.
 
-export interface CarPhoto {
+interface CarPhoto {
   /** File name on Commons. */
   file: string;
   /** Car name for the caption. */

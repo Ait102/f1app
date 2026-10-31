@@ -225,16 +225,6 @@ select {
   font-variant-numeric: tabular-nums;
 }
 
-.tag {
-  border-radius: 4px;
-  padding: 1px 6px;
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border-color: var(--border-strong);
-  color: var(--muted);
-}
-
 .badge {
   font-size: 0.66rem;
   font-weight: 700;

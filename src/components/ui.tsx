@@ -1,6 +1,7 @@
 // Small UI pieces shared by every series: stat tiles, search, dates, points bars.
 import type { ReactNode } from 'react';
 
+import { flagUrl } from '../lib/flags';
 import { formatMoment, formatPoints } from '../lib/format';
 
 /** Small "label / value" stat tile. Unknown values show as a dash. */
@@ -71,5 +72,43 @@ export function PointsWithBar({
         <span className="pts__fill" style={{ width: `${pct}%` }} />
       </span>
     </span>
+  );
+}
+
+/** Small flag for a nationality ("British") or a country ("UK"). Decorative: the name is shown next to it. */
+export function Flag({ value, kind }: { value: string | null | undefined; kind: 'nationality' | 'country' }) {
+  const src = flagUrl(value, kind);
+  if (!src) return null;
+  return <img className="flag" src={src} alt="" width={20} height={15} />;
+}
+
+/** Text with a flag in front of it; plain text (or a dash) when there is no flag. */
+export function WithFlag({
+  value,
+  kind,
+}: {
+  value: string | null | undefined;
+  kind: 'nationality' | 'country';
+}) {
+  if (!value) return <>—</>;
+  return (
+    <span className="with-flag">
+      <Flag value={value} kind={kind} />
+      {value}
+    </span>
+  );
+}
+
+/** Progress of a multi-request load ("Загружаем сезоны: 7 из 20"). */
+export function LoadingProgress({ done, total, label }: { done: number; total: number; label: string }) {
+  return (
+    <div className="load-progress" role="status" aria-live="polite">
+      <p>
+        {label}: {done} из {total}
+      </p>
+      <div className="progress" aria-hidden="true">
+        <div className="progress__bar" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
+      </div>
+    </div>
   );
 }

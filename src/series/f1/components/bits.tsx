@@ -116,6 +116,18 @@ export function FavButton({ kind, id, name }: { kind: FavKind; id: string; name:
   );
 }
 
+/** Marks a sprint weekend: an extra short race for points on Saturday. */
+export function SprintBadge() {
+  return (
+    <span className="sprint-badge" title="Спринт-уикенд: в субботу короткая гонка за очки">
+      <svg viewBox="0 0 12 16" width="9" height="12" aria-hidden="true" focusable="false">
+        <path d="M7.5 0 0 9h4.5L3.5 16 12 6.5H7.2z" fill="currentColor" />
+      </svg>
+      Спринт
+    </span>
+  );
+}
+
 export function StatusBadge({ status }: { status: RaceStatus }) {
   return <span className={`badge badge--${status}`}>{STATUS_LABELS[status]}</span>;
 }

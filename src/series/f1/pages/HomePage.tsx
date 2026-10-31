@@ -2,10 +2,10 @@ import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 
 import { DataState, ErrorBox, Loading, MetaLine } from '../../../components/DataState';
-import { leaderShare, Moment, posClass } from '../../../components/ui';
+import { Flag, leaderShare, Moment, posClass } from '../../../components/ui';
 import { useNow } from '../../../hooks/useNow';
 import { countdownParts, formatPoints, sessionStart } from '../../../lib/format';
-import { DriverCell, StatusBadge, TeamCell } from '../components/bits';
+import { DriverCell, SprintBadge, StatusBadge, TeamCell } from '../components/bits';
 import { findNextRace, raceStatus } from '../domain/status';
 import type { RaceEvent } from '../domain/types';
 import { useConstructorStandings, useDriverStandings, useRaceResults, useRaces } from '../hooks/data';
@@ -168,12 +168,13 @@ function NextRace({ races, lastRound, now }: { races: RaceEvent[]; lastRound: nu
       <div className="hero__main">
         <p className="hero__eyebrow">
           Следующий этап · {next.round} <StatusBadge status={status} />
-          {next.hasSprint && <span className="tag">Спринт</span>}
+          {next.hasSprint && <SprintBadge />}
         </p>
         <Link to={`/${next.seasonYear}/race/${next.round}`} className="hero__name">
           {next.name}
         </Link>
         <p className="hero__place">
+          <Flag value={next.country} kind="country" />
           {[next.circuitName, next.locality, next.country].filter(Boolean).join(' · ') || 'Трасса не указана'}
         </p>
         <p className="hero__date">

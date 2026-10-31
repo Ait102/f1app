@@ -1,0 +1,160 @@
+/* Motion: short, CSS-only, nothing loops except the live dot.
+   Users who prefer reduced motion get none of it (rule in 09-theme-responsive.css). */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes reveal-x {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* Page change */
+main > .page {
+  animation: rise-in 0.35s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+/* Cards and rows appear one after another */
+.race-grid > li,
+.choose__grid > .series-card,
+.grid-2 > .card,
+.grid-3 > .card,
+.leaders > li,
+.cmp-row,
+.stats--grid > .stat {
+  animation: rise-in 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.race-grid > li:nth-child(2),
+.choose__grid > :nth-child(2),
+.grid-2 > :nth-child(2),
+.grid-3 > :nth-child(2),
+.leaders > li:nth-child(2),
+.cmp-row:nth-child(2),
+.stats--grid > :nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.race-grid > li:nth-child(3),
+.grid-3 > :nth-child(3),
+.leaders > li:nth-child(3),
+.cmp-row:nth-child(3),
+.stats--grid > :nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.race-grid > li:nth-child(4),
+.leaders > li:nth-child(4),
+.cmp-row:nth-child(4),
+.stats--grid > :nth-child(4) {
+  animation-delay: 120ms;
+}
+
+.race-grid > li:nth-child(5),
+.leaders > li:nth-child(5),
+.cmp-row:nth-child(5),
+.stats--grid > :nth-child(5) {
+  animation-delay: 160ms;
+}
+
+.race-grid > li:nth-child(n + 6),
+.cmp-row:nth-child(n + 6),
+.stats--grid > :nth-child(n + 6) {
+  animation-delay: 200ms;
+}
+
+/* Bars grow from their start */
+.pts__fill,
+.progress__bar {
+  transform-origin: left center;
+  animation: grow-x 0.6s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.cmp-cell--b .cmp-bar {
+  transform-origin: left center;
+  animation: grow-x 0.6s cubic-bezier(0.23, 1, 0.32, 1) 0.15s both;
+}
+
+.cmp-cell--a .cmp-bar {
+  transform-origin: right center;
+  animation: grow-x 0.6s cubic-bezier(0.23, 1, 0.32, 1) 0.15s both;
+}
+
+.leaders li::before {
+  transform-origin: left center;
+  animation: grow-x 0.7s cubic-bezier(0.23, 1, 0.32, 1) 0.1s both;
+}
+
+/* Chart lines are drawn left to right */
+.chart__svg path[data-driver] {
+  animation: reveal-x 1s cubic-bezier(0.45, 0, 0.2, 1) both;
+}
+
+/* Table rows fade in when a table appears */
+.table tbody tr {
+  animation: fade-in 0.3s ease both;
+}
+
+/* Live weekend: a pulsing dot in the badge */
+.badge--live::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 50%;
+  vertical-align: 1px;
+  background: currentColor;
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+
+/* Small lift on hover for the clickable cards */
+.series-card,
+.cmp-head,
+.stat {
+  transition: transform 0.15s ease;
+}
+
+.stat:hover {
+  transform: translateY(-2px);
+}

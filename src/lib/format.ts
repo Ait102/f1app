@@ -114,3 +114,11 @@ export function countdownParts(
   const mins = Math.floor(ms / 60000);
   return { days: Math.floor(mins / 1440), hours: Math.floor((mins % 1440) / 60), minutes: mins % 60 };
 }
+
+/** "23.456" or "1:02.345" → seconds; null for anything else. */
+export function durationSeconds(d: string | null): number | null {
+  if (!d) return null;
+  const m = /^(?:(\d+):)?(\d+(?:\.\d+)?)$/.exec(d.trim());
+  if (!m) return null;
+  return (m[1] ? Number(m[1]) * 60 : 0) + Number(m[2]);
+}

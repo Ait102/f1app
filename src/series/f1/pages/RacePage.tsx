@@ -3,15 +3,22 @@ import { Link, useParams } from 'react-router-dom';
 
 import { DataState, ErrorBox, Loading, MetaLine } from '../../../components/DataState';
 import { SortableTable, type Column } from '../../../components/SortableTable';
-import { Moment, posClass, SearchBox } from '../../../components/ui';
+import { Flag, Moment, posClass, SearchBox } from '../../../components/ui';
 import { useNow } from '../../../hooks/useNow';
-import { formatPoints } from '../../../lib/format';
-import { CircuitLink, DriverCell, StatusBadge, TeamCell } from '../components/bits';
+import { durationSeconds, formatPoints } from '../../../lib/format';
+import { CircuitLink, DriverCell, SprintBadge, StatusBadge, TeamCell } from '../components/bits';
 import { CircuitPanel } from '../components/CircuitMap';
 import { matchesDriver } from '../domain/search';
 import { raceStatus, type RaceStatus } from '../domain/status';
-import type { QualifyingResult, RaceEvent, RaceResult } from '../domain/types';
-import { useDriverStandings, useQualifying, useRaceResults, useRaces, useSprint } from '../hooks/data';
+import type { PitStop, QualifyingResult, RaceEvent, RaceResult } from '../domain/types';
+import {
+  useDriverStandings,
+  usePitStops,
+  useQualifying,
+  useRaceResults,
+  useRaces,
+  useSprint,
+} from '../hooks/data';
 import { useFavorites } from '../hooks/useFavorites';
 import { PageHeader, SeasonGuard } from './common';
 
@@ -59,12 +66,13 @@ function Race({ season }: { season: number }) {
 
       <PageHeader eyebrow={`Сезон ${season} · Этап ${race.round}`} title={race.name}>
         <p className="lead">
-          <StatusBadge status={status} />{' '}
+          <StatusBadge status={status} /> {race.hasSprint && <SprintBadge />}{' '}
           {race.circuitName ? (
             <CircuitLink season={season} id={race.circuitId} name={race.circuitName} />
           ) : (
             !race.locality && !race.country && 'Трасса не указана'
           )}
+          <Flag value={race.country} kind="country" />
           {[race.locality, race.country].filter(Boolean).join(' · ')}
         </p>
         {race.url && (
@@ -83,14 +91,28 @@ function Race({ season }: { season: number }) {
           <h2 className="card__title">Расписание</h2>
           <ol className="schedule__list">
             {race.sessions.map((s) => (
-              <li key={s.kind} className={s.kind === 'Race' ? 'schedule__race' : undefined}>
+              <li
+                key={s.kind}
+                className={
+                  s.kind === 'Race'
+                    ? 'schedule__race'
+                    : s.kind === 'Sprint' || s.kind === 'SprintQualifying'
+                      ? 'schedule__sprint'
+                      : undefined
+                }
+              >
                 <span>{s.label}</span>
                 <Moment date={s.date} time={s.time} />
               </li>
             ))}
           </ol>
-          {race.sessions.length === 1 && (
+          {race.sessions.length === 1 ? (
             <p className="muted small">Источник не публикует время других сессий этого этапа.</p>
+          ) : (
+            <p className="muted small">
+              Результаты свободных практик{race.hasSprint ? ' и спринт-квалификации' : ''} источник не
+              публикует — только время сессий.
+            </p>
           )}
           <MetaLine meta={races.meta} />
         </aside>
@@ -103,7 +125,10 @@ function Race({ season }: { season: number }) {
   );
 }
 
-type Tab = 'race' | 'qualifying' | 'sprint';
+type Tab = 'race' | 'qualifying' | 'sprint' | 'pits';
+
+/** The source has pit-stop data from 2011 on. */
+const PIT_STOPS_FROM = 2011;
 
 function Results({ race, status }: { race: RaceEvent; status: RaceStatus }) {
   const [tab, setTab] = useState<Tab>('race');
@@ -121,6 +146,7 @@ function Results({ race, status }: { race: RaceEvent; status: RaceStatus }) {
     ['race', 'Гонка'],
     ['qualifying', 'Квалификация'],
     ...(race.hasSprint ? ([['sprint', 'Спринт']] as Array<[Tab, string]>) : []),
+    ...(race.seasonYear >= PIT_STOPS_FROM ? ([['pits', 'Пит-стопы']] as Array<[Tab, string]>) : []),
   ];
 
   return (
@@ -145,6 +171,7 @@ function Results({ race, status }: { race: RaceEvent; status: RaceStatus }) {
         {tab === 'race' && <RaceResultsTab race={race} />}
         {tab === 'qualifying' && <QualifyingTab race={race} />}
         {tab === 'sprint' && <SprintTab race={race} />}
+        {tab === 'pits' && <PitStopsTab race={race} />}
       </div>
     </>
   );
@@ -161,6 +188,15 @@ function resultColumns(): Column<RaceResult>[] {
         <span className={posClass('pos', r.position)}>{r.positionText ?? r.position ?? '—'}</span>
       ),
       sortValue: (r) => r.position,
+    },
+    {
+      key: 'num',
+      header: 'Номер',
+      abbr: '№',
+      align: 'center',
+      optional: true,
+      render: (r) => (r.number ? <span className="car-number">{r.number}</span> : '—'),
+      sortValue: (r) => (r.number ? Number(r.number) : null),
     },
     {
       key: 'driver',
@@ -299,6 +335,79 @@ function QualifyingTab({ race }: { race: RaceEvent }) {
           caption={`Квалификация: ${race.name}`}
         />
       )}
+    </DataState>
+  );
+}
+
+function PitStopsTab({ race }: { race: RaceEvent }) {
+  const pits = usePitStops(race.seasonYear, race.round);
+  // Names and teams come from the race result of the same weekend.
+  const results = useRaceResults(race.seasonYear, race.round);
+  const people = results.status === 'success' ? results.data.results : [];
+  const who = (id: string) => people.find((r) => r.driver.id === id) ?? null;
+
+  const columns: Column<PitStop>[] = [
+    {
+      key: 'driver',
+      header: 'Пилот',
+      render: (p) => {
+        const r = who(p.driverId);
+        return r ? <DriverCell driver={r.driver} team={r.constructor} /> : p.driverId;
+      },
+      sortValue: (p) => who(p.driverId)?.driver.familyName ?? p.driverId,
+    },
+    {
+      key: 'stop',
+      header: 'Остановка',
+      align: 'center',
+      render: (p) => p.stop ?? '—',
+      sortValue: (p) => p.stop,
+    },
+    { key: 'lap', header: 'Круг', align: 'center', render: (p) => p.lap ?? '—', sortValue: (p) => p.lap },
+    {
+      key: 'dur',
+      header: 'В пит-лейне, с',
+      abbr: 'Время',
+      align: 'right',
+      render: (p) => <strong>{p.duration ?? '—'}</strong>,
+      sortValue: (p) => durationSeconds(p.duration),
+    },
+  ];
+
+  return (
+    <DataState
+      state={pits}
+      isEmpty={(d) => d.length === 0}
+      emptyText="Данных о пит-стопах этого этапа у источника нет."
+    >
+      {(rows) => {
+        const fastest = rows.reduce<PitStop | null>((best, p) => {
+          const s = durationSeconds(p.duration);
+          const b = best ? durationSeconds(best.duration) : null;
+          return s !== null && (b === null || s < b) ? p : best;
+        }, null);
+        const f = fastest ? who(fastest.driverId) : null;
+        return (
+          <>
+            {fastest && (
+              <p className="small">
+                Самое короткое время в пит-лейне: <strong>{fastest.duration} с</strong>
+                {f ? ` — ${f.driver.familyName}` : ''}
+                {fastest.lap !== null ? `, круг ${fastest.lap}` : ''}.
+              </p>
+            )}
+            <p className="muted small">
+              Время — от въезда до выезда из пит-лейна, как у источника, а не длительность самой остановки.
+            </p>
+            <SortableTable
+              columns={columns}
+              rows={rows}
+              rowKey={(p) => `${p.driverId}-${p.stop}`}
+              caption={`Пит-стопы: ${race.name}`}
+            />
+          </>
+        );
+      }}
     </DataState>
   );
 }

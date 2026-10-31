@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { DataState } from '../../../components/DataState';
 import { SortableTable, type Column } from '../../../components/SortableTable';
-import { PointsWithBar, posClass, SearchBox } from '../../../components/ui';
+import { PointsWithBar, posClass, SearchBox, WithFlag } from '../../../components/ui';
 import { DriverCell } from '../components/bits';
 import { matchesDriver } from '../domain/search';
 import type { DriverStanding } from '../domain/types';
@@ -23,6 +24,15 @@ function makeColumns(leader: number | null | undefined): Column<DriverStanding>[
       sortValue: (r) => r.position,
     },
     {
+      key: 'num',
+      header: 'Номер',
+      abbr: '№',
+      align: 'center',
+      optional: true,
+      render: (r) => (r.driver.number ? <span className="car-number">{r.driver.number}</span> : '—'),
+      sortValue: (r) => (r.driver.number ? Number(r.driver.number) : null),
+    },
+    {
       key: 'driver',
       header: 'Пилот',
       render: (r) => <DriverCell driver={r.driver} team={r.constructors.at(-1)} />,
@@ -32,7 +42,7 @@ function makeColumns(leader: number | null | undefined): Column<DriverStanding>[
       key: 'nat',
       header: 'Страна',
       optional: true,
-      render: (r) => r.driver.nationality ?? '—',
+      render: (r) => <WithFlag value={r.driver.nationality} kind="nationality" />,
       sortValue: (r) => r.driver.nationality,
     },
     {
@@ -76,6 +86,11 @@ function Drivers({ season }: { season: number }) {
             После этапа {ds.data.round}. Очки и позиции — как у источника, без пересчёта.
           </p>
         )}
+        <p>
+          <Link className="btn btn--ghost btn--small" to={`/${season}/compare`}>
+            Сравнить пилотов →
+          </Link>
+        </p>
       </PageHeader>
       <DataState
         state={ds}

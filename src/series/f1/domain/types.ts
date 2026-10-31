@@ -50,6 +50,8 @@ export interface Constructor {
 }
 
 export interface RaceResult {
+  /** Car number in this race. */
+  number: string | null;
   position: number | null;
   positionText: string | null;
   driver: Driver;
@@ -115,6 +117,53 @@ export interface RaceWithResults {
 
 /** Career totals read from the source's row counts, never computed by us. */
 export interface CareerCounts {
-  wins: number | null;
+  /** Race entries, retirements included. */
   starts: number | null;
+  wins: number | null;
+  podiums: number | null;
+  /** Counted from qualifying results, which the source has from 1994. */
+  poles: number | null;
+  fastestLaps: number | null;
+  /** Seasons with at least one entry, ascending. */
+  seasons: number[];
+  teams: Constructor[];
+}
+
+/** Career totals of a team, read from the source's row counts. */
+export interface TeamCareer {
+  wins: number | null;
+  /** Podium finishes by car (two cars can both finish on the podium). */
+  podiums: number | null;
+  poles: number | null;
+  seasons: number[];
+  drivers: number | null;
+}
+
+/** Final championship row of one season, as published by the source. */
+export interface SeasonStanding {
+  season: number;
+  position: number | null;
+  /** E.g. "D" for a disqualified season. */
+  positionText: string | null;
+  points: number | null;
+  wins: number | null;
+  teams: Constructor[];
+  /** The season is over: every round of the calendar is counted. A leader of a running season is not a champion. */
+  final: boolean;
+}
+
+export interface SeasonHistory {
+  rows: SeasonStanding[];
+  /** Seasons that could not be loaded. */
+  failed: number[];
+}
+
+export interface PitStop {
+  driverId: string;
+  stop: number | null;
+  lap: number | null;
+  /** Local time of day, as given by the source. */
+  time: string | null;
+  /** Seconds in the pit lane, as text ("23.456" or "1:02.345"). */
+  duration: string | null;
 }

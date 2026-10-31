@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { DataState } from '../../../components/DataState';
-import { Moment } from '../../../components/ui';
+import { Flag, Moment } from '../../../components/ui';
 import { useNow } from '../../../hooks/useNow';
-import { StatusBadge } from '../components/bits';
+import { SprintBadge, StatusBadge } from '../components/bits';
 import { preloadCircuit } from '../data/circuits';
 import { findNextRace, raceStatus, STATUS_LABELS, type RaceStatus } from '../domain/status';
 import { useDriverStandings, useRaces } from '../hooks/data';
@@ -21,6 +21,7 @@ function Calendar({ season }: { season: number }) {
   const ds = useDriverStandings(season);
   const now = useNow();
   const [filter, setFilter] = useState<Filter>('all');
+  const [sprintOnly, setSprintOnly] = useState(false);
 
   // Completed rounds come from standings; if they failed, statuses fall back to dates.
   const lastRound = ds.status === 'success' ? ds.data.round : null;
@@ -44,7 +45,9 @@ function Calendar({ season }: { season: number }) {
               present.has(s),
             ),
           ];
-          const shown = filter === 'all' ? withStatus : withStatus.filter((x) => x.status === filter);
+          const byStatus = filter === 'all' ? withStatus : withStatus.filter((x) => x.status === filter);
+          const shown = sprintOnly ? byStatus.filter((x) => x.race.hasSprint) : byStatus;
+          const sprintCount = withStatus.filter((x) => x.race.hasSprint).length;
           return (
             <>
               <div className="chips" role="group" aria-label="Фильтр по статусу">
@@ -62,6 +65,16 @@ function Calendar({ season }: { season: number }) {
                     </span>
                   </button>
                 ))}
+                {sprintCount > 0 && (
+                  <button
+                    type="button"
+                    className="chip chip--sprint"
+                    aria-pressed={sprintOnly}
+                    onClick={() => setSprintOnly((v) => !v)}
+                  >
+                    ⚡ Спринт-уикенды <span className="chip__count">{sprintCount}</span>
+                  </button>
+                )}
               </div>
               {ds.status === 'error' && (
                 <p className="note">
@@ -76,7 +89,7 @@ function Calendar({ season }: { season: number }) {
                     <li key={race.round}>
                       <Link
                         to={`/${season}/race/${race.round}`}
-                        className={`race-card race-card--${status}${race.round === nextRound ? ' race-card--next' : ''}`}
+                        className={`race-card race-card--${status}${race.round === nextRound ? ' race-card--next' : ''}${race.hasSprint ? ' race-card--sprint' : ''}`}
                         data-round={race.round}
                         onMouseEnter={() => preloadCircuit(race.circuitId)}
                         onFocus={() => preloadCircuit(race.circuitId)}
@@ -84,17 +97,20 @@ function Calendar({ season }: { season: number }) {
                         {race.round === nextRound && <span className="race-card__next">Следующий</span>}
                         <span className="race-card__top">
                           <span className="race-card__round">Этап {race.round}</span>
-                          <StatusBadge status={status} />
+                          <span className="race-card__badges">
+                            {race.hasSprint && <SprintBadge />}
+                            <StatusBadge status={status} />
+                          </span>
                         </span>
                         <span className="race-card__name">{race.name}</span>
                         <span className="race-card__place">
+                          <Flag value={race.country} kind="country" />
                           {[race.locality, race.country].filter(Boolean).join(', ') || 'Место не указано'}
                         </span>
                         <span className="race-card__circuit muted">{race.circuitName ?? ''}</span>
                         <span className="race-card__date">
                           <Moment date={race.date} time={race.time} />
                         </span>
-                        {race.hasSprint && <span className="tag">Спринт</span>}
                       </Link>
                     </li>
                   ))}

@@ -1,16 +1,26 @@
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { DataState, ErrorBox, Loading } from '../../../components/DataState';
 import { SortableTable, type Column } from '../../../components/SortableTable';
-import { Stat } from '../../../components/ui';
+import { Stat, WithFlag } from '../../../components/ui';
 import { formatPoints } from '../../../lib/format';
 import { DriverCell, FavButton, teamColor } from '../components/bits';
-import type { Driver, RaceWithResults } from '../domain/types';
+import { SeasonHistory } from '../components/SeasonHistory';
+import {
+  CONSTRUCTORS_CUP_FROM,
+  polesIncomplete,
+  QUALIFYING_DATA_FROM,
+  seasonSpan,
+  titleYears,
+} from '../domain/career';
+import type { Driver, RaceWithResults, TeamCareer } from '../domain/types';
 import {
   useConstructor,
+  useConstructorCareer,
+  useConstructorHistory,
   useConstructorSeason,
   useConstructorStandings,
-  useConstructorWins,
 } from '../hooks/data';
 import { ID_RE, NotFoundBlock, PageHeader, SeasonGuard } from './common';
 
@@ -27,7 +37,7 @@ function ConstructorProfileView({ season }: { season: number }) {
 function ConstructorBody({ season, id }: { season: number; id: string }) {
   const profile = useConstructor(id);
   const cs = useConstructorStandings(season);
-  const wins = useConstructorWins(id);
+  const career = useConstructorCareer(id);
 
   if (profile.status === 'loading') return <Loading rows={5} />;
   if (profile.status === 'error') return <ErrorBox error={profile.error} onRetry={profile.reload} />;
@@ -44,7 +54,11 @@ function ConstructorBody({ season, id }: { season: number; id: string }) {
       </nav>
       <PageHeader eyebrow="Команда" title={team.name}>
         <div className="team-stripe" style={{ background: teamColor(team) }} aria-hidden="true" />
-        {team.nationality && <p className="lead">{team.nationality}</p>}
+        {team.nationality && (
+          <p className="lead">
+            <WithFlag value={team.nationality} kind="nationality" />
+          </p>
+        )}
         <FavButton kind="constructors" id={team.id} name={team.name} />
         {team.url && (
           <p>
@@ -73,16 +87,35 @@ function ConstructorBody({ season, id }: { season: number; id: string }) {
           )}
         </article>
         <article className="card">
-          <h2 className="card__title">Карьера</h2>
-          <DataState state={wins}>
-            {(w) => (
-              <div className="stats">
-                <Stat label="Победы в гонках" value={w} />
-              </div>
+          <h2 className="card__title">
+            История
+            {career.status === 'success' && seasonSpan(career.data.seasons)
+              ? ` · ${seasonSpan(career.data.seasons)}`
+              : ''}
+          </h2>
+          <DataState state={career}>
+            {(c) => (
+              <>
+                <div className="stats stats--grid">
+                  <Stat label="Победы" value={c.wins} />
+                  <Stat label="Подиумы (машины)" value={c.podiums} />
+                  <Stat label={polesIncomplete(c.seasons) ? 'Поулы*' : 'Поулы'} value={c.poles} />
+                  <Stat label="Сезоны" value={c.seasons.length} />
+                  <Stat label="Пилотов" value={c.drivers} />
+                </div>
+                {polesIncomplete(c.seasons) && (
+                  <p className="muted small">
+                    * Поулы считаются по результатам квалификаций, а они есть у источника только с{' '}
+                    {QUALIFYING_DATA_FROM} года.
+                  </p>
+                )}
+              </>
             )}
           </DataState>
         </article>
       </div>
+
+      {career.status === 'success' && <TeamHistory id={id} career={career.data} />}
 
       <SeasonBlock season={season} id={id} />
     </section>
@@ -162,5 +195,39 @@ function SeasonBlock({ season, id }: { season: number; id: string }) {
         );
       }}
     </DataState>
+  );
+}
+
+/**
+ * Constructors' championship by season. Loaded on request: an old team can have
+ * 70+ seasons, i.e. 70+ requests to the source.
+ */
+function TeamHistory({ id, career }: { id: string; career: TeamCareer }) {
+  const seasons = career.seasons.filter((y) => y >= CONSTRUCTORS_CUP_FROM);
+  const [open, setOpen] = useState(false);
+  const history = useConstructorHistory(id, open ? seasons : null);
+  const titles = history.status === 'success' ? titleYears(history.data.rows) : null;
+
+  if (seasons.length === 0) return null;
+  return (
+    <>
+      <h2 className="section-title">Кубок конструкторов по сезонам</h2>
+      {!open ? (
+        <p>
+          <button type="button" className="btn btn--ghost" onClick={() => setOpen(true)}>
+            Показать историю ({seasons.length} {seasons.length === 1 ? 'сезон' : 'сезонов'})
+          </button>
+        </p>
+      ) : (
+        <>
+          {titles && titles.length > 0 && (
+            <p className="small">
+              <span className="title-star">★</span> Кубок конструкторов: {titles.join(', ')}
+            </p>
+          )}
+          <SeasonHistory state={history} kind="team" link={(y) => `/${y}/constructor/${id}`} />
+        </>
+      )}
+    </>
   );
 }

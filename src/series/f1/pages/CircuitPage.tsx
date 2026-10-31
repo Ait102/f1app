@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 
 import { DataState, ErrorBox, Loading } from '../../../components/DataState';
 import { SortableTable, type Column } from '../../../components/SortableTable';
-import { Moment, Stat } from '../../../components/ui';
+import { Flag, Moment, Stat } from '../../../components/ui';
 import { DriverCell, TeamCell } from '../components/bits';
 import { CircuitPanel } from '../components/CircuitMap';
 import type { RaceWithResults } from '../domain/types';
@@ -74,7 +74,10 @@ function CircuitBody({ season, id }: { season: number; id: string }) {
         <Link to={`/${season}/calendar`}>← Календарь {season}</Link>
       </nav>
       <PageHeader eyebrow="Трасса" title={c.name}>
-        <p className="lead">{[c.locality, c.country].filter(Boolean).join(', ') || 'Место не указано'}</p>
+        <p className="lead with-flag">
+          <Flag value={c.country} kind="country" />
+          {[c.locality, c.country].filter(Boolean).join(', ') || 'Место не указано'}
+        </p>
         <p className="links-row">
           {mapUrl && (
             <a href={mapUrl} target="_blank" rel="noreferrer">

@@ -4,29 +4,44 @@ import type { Page, Route } from '@playwright/test';
 /** Frozen "now": after round 1, before round 2 of 2026. */
 const NOW = new Date('2026-03-10T12:00:00Z');
 
-const driver = (id: string, given: string, family: string, code: string) => ({
+const driver = (
+  id: string,
+  given: string,
+  family: string,
+  code: string,
+  nationality: string,
+  number: string,
+) => ({
   driverId: id,
   givenName: given,
   familyName: family,
   code,
-  nationality: 'Test',
+  nationality,
+  permanentNumber: number,
 });
-const team = (id: string, name: string) => ({ constructorId: id, name, nationality: 'Test' });
+const team = (id: string, name: string, nationality: string) => ({ constructorId: id, name, nationality });
 
-const RUS = driver('russell', 'George', 'Russell', 'RUS');
-const ANT = driver('antonelli', 'Andrea Kimi', 'Antonelli', 'ANT');
-const VER = driver('max_verstappen', 'Max', 'Verstappen', 'VER');
-const MER = team('mercedes', 'Mercedes');
-const RBR = team('red_bull', 'Red Bull');
+const RUS = driver('russell', 'George', 'Russell', 'RUS', 'British', '63');
+const ANT = driver('antonelli', 'Andrea Kimi', 'Antonelli', 'ANT', 'Italian', '12');
+const VER = driver('max_verstappen', 'Max', 'Verstappen', 'VER', 'Dutch', '3');
+const MER = team('mercedes', 'Mercedes', 'German');
+const RBR = team('red_bull', 'Red Bull', 'Austrian');
 
-const race = (season: number, round: number, name: string, date: string, extra: object = {}) => ({
+const race = (
+  season: number,
+  round: number,
+  name: string,
+  date: string,
+  extra: object = {},
+  country = 'Country',
+) => ({
   season: String(season),
   round: String(round),
   raceName: name,
   Circuit: {
     circuitId: `c${round}`,
     circuitName: `${name} Circuit`,
-    Location: { locality: 'City', country: 'Country' },
+    Location: { locality: 'City', country },
   },
   date,
   time: '13:00:00Z',
@@ -35,9 +50,16 @@ const race = (season: number, round: number, name: string, date: string, extra: 
 
 const races: Record<number, object[]> = {
   2026: [
-    race(2026, 1, 'Australian Grand Prix', '2026-03-08'),
-    race(2026, 2, 'Chinese Grand Prix', '2026-03-15', { Sprint: { date: '2026-03-14', time: '03:00:00Z' } }),
-    race(2026, 3, 'Japanese Grand Prix', '2026-03-29'),
+    race(2026, 1, 'Australian Grand Prix', '2026-03-08', {}, 'Australia'),
+    race(
+      2026,
+      2,
+      'Chinese Grand Prix',
+      '2026-03-15',
+      { Sprint: { date: '2026-03-14', time: '03:00:00Z' } },
+      'China',
+    ),
+    race(2026, 3, 'Japanese Grand Prix', '2026-03-29', {}, 'Japan'),
   ],
   2025: [race(2025, 1, 'Season 2025 Finale', '2025-12-07')],
 };
@@ -62,6 +84,7 @@ const results = [
     Time: { time: '1:23:06.801' },
     Driver: RUS,
     Constructor: MER,
+    number: '63',
   },
   {
     position: '2',
@@ -73,6 +96,7 @@ const results = [
     Time: { time: '+2.974' },
     Driver: ANT,
     Constructor: MER,
+    number: '12',
   },
   {
     position: '3',
@@ -84,6 +108,7 @@ const results = [
     Time: { time: '+5.100' },
     Driver: VER,
     Constructor: RBR,
+    number: '3',
   },
 ];
 
@@ -136,10 +161,61 @@ function respond(path: string): object | null {
   if ((m = path.match(/^\/drivers\/(\w+)\/$/))) {
     const d = allDrivers.find((x) => x.driverId === m![1]);
     return mr(d ? 1 : 0, {
-      DriverTable: { Drivers: d ? [{ ...d, permanentNumber: '63', dateOfBirth: '1998-02-15' }] : [] },
+      DriverTable: { Drivers: d ? [{ ...d, dateOfBirth: '1998-02-15' }] : [] },
     });
   }
   if ((m = path.match(/^\/drivers\/(\w+)\/results\/1\/$/))) return mr(m[1] === 'russell' ? 8 : 0, {});
+  if ((m = path.match(/^\/drivers\/(\w+)\/results\/([23])\/$/))) return mr(m[1] === 'russell' ? 5 : 2, {});
+  if ((m = path.match(/^\/drivers\/(\w+)\/qualifying\/1\/$/))) return mr(m[1] === 'russell' ? 6 : 9, {});
+  if ((m = path.match(/^\/drivers\/(\w+)\/fastest\/1\/results\/$/)))
+    return mr(m[1] === 'russell' ? 3 : 4, {});
+  if ((m = path.match(/^\/drivers\/(\w+)\/seasons\/$/))) {
+    const years = m[1] === 'max_verstappen' ? ['2025', '2026'] : ['2026'];
+    return mr(years.length, { SeasonTable: { Seasons: years.map((season) => ({ season })) } });
+  }
+  if ((m = path.match(/^\/drivers\/(\w+)\/constructors\/$/))) {
+    const t = m[1] === 'max_verstappen' ? RBR : MER;
+    return mr(1, { ConstructorTable: { Constructors: [t] } });
+  }
+  if ((m = path.match(/^\/(\d{4})\/drivers\/(\w+)\/driverstandings\/$/))) {
+    const rows = (driverStandings[+m[1]] ?? []) as Array<{ Driver: { driverId: string } }>;
+    const own = rows.filter((r) => r.Driver.driverId === m![2]);
+    return mr(own.length, {
+      StandingsTable: {
+        StandingsLists: own.length ? [{ season: m[1], round: '1', DriverStandings: own }] : [],
+      },
+    });
+  }
+  if ((m = path.match(/^\/constructors\/(\w+)\/results\/([23])\/$/))) return mr(40, {});
+  if ((m = path.match(/^\/constructors\/(\w+)\/qualifying\/1\/$/))) return mr(120, {});
+  if ((m = path.match(/^\/constructors\/(\w+)\/drivers\/$/))) return mr(30, {});
+  if ((m = path.match(/^\/constructors\/(\w+)\/seasons\/$/))) {
+    return mr(2, { SeasonTable: { Seasons: [{ season: '2025' }, { season: '2026' }] } });
+  }
+  if ((m = path.match(/^\/(\d{4})\/constructors\/(\w+)\/constructorstandings\/$/))) {
+    const t = m[2] === 'mercedes' ? MER : RBR;
+    return mr(1, {
+      StandingsTable: {
+        StandingsLists: [
+          {
+            season: m[1],
+            round: '1',
+            ConstructorStandings: [{ position: '1', points: '43', wins: '1', Constructor: t }],
+          },
+        ],
+      },
+    });
+  }
+  if ((m = path.match(/^\/(\d{4})\/(\d+)\/pitstops\/$/))) {
+    const stops =
+      m[2] === '1'
+        ? [
+            { driverId: 'russell', stop: '1', lap: '20', time: '14:30:00', duration: '22.910' },
+            { driverId: 'max_verstappen', stop: '1', lap: '21', time: '14:31:40', duration: '21.874' },
+          ]
+        : [];
+    return mr(stops.length, { RaceTable: { Races: [{ season: m[1], round: m[2], PitStops: stops }] } });
+  }
   if ((m = path.match(/^\/drivers\/(\w+)\/results\/$/))) return mr(170, {});
   if ((m = path.match(/^\/(\d{4})\/drivers\/(\w+)\/results\/$/))) {
     const own = results.filter((x) => x.Driver.driverId === m![2]);

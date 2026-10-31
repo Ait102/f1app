@@ -17,6 +17,7 @@ const ROUTES = [
   './#/2026/constructor/mercedes',
   './#/2026/circuit/c1',
   './#/2026/about',
+  './#/2026/compare?a=russell&b=max_verstappen',
 ];
 
 test('pages match the baselines', async ({ page }) => {

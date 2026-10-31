@@ -5,3 +5,8 @@ test-results
 playwright-report
 e2e/visual.spec.ts-snapshots
 .claude/
+
+# Secrets: never commit environment files. A template without values may be committed as .env.example.
+.env
+.env.*
+!.env.example

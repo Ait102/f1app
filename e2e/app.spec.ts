@@ -93,6 +93,7 @@ test('mobile layout has no horizontal scroll', async ({ page }) => {
     './#/2026/constructor/mercedes',
     './#/2026/circuit/c1',
     './#/2026/chart',
+    './#/2026/compare?a=russell&b=max_verstappen',
   ]) {
     await page.goto(path);
     await expect(page.locator('main h1')).toBeVisible();
@@ -135,9 +136,19 @@ test('driver profile from standings', async ({ page }) => {
   await page.getByRole('link', { name: /Russell/ }).click();
   await expect(page).toHaveURL(/#\/2026\/driver\/russell$/);
   await expect(page.getByRole('heading', { level: 1, name: 'George Russell' })).toBeVisible();
-  await expect(page.getByText('Гонки (с учётом сходов)')).toBeVisible();
-  await expect(page.locator('.stat', { hasText: 'Победы' }).last()).toContainText('8');
-  await expect(page.locator('table tbody tr')).toHaveCount(1);
+  // Career: counts from the source, titles only from finished seasons.
+  const career = page.locator('.card', { hasText: 'Карьера' });
+  await expect(career.locator('.stat', { hasText: 'Победы' })).toContainText('8');
+  await expect(career.locator('.stat', { hasText: 'Подиумы' })).toContainText('18');
+  await expect(career.locator('.stat', { hasText: 'Поулы' })).toContainText('6');
+  // Leading the running 2026 season is not a title.
+  await expect(career.locator('.stat', { hasText: 'Титулы' })).toContainText('0');
+  await expect(page.locator('.car-number--big')).toHaveText('63');
+  await expect(page.locator('.profile-facts img.flag')).toHaveCount(1);
+  // Season history: 2026 is marked as running.
+  await expect(page.getByRole('table', { name: /Итоги чемпионатов/ }).locator('tbody tr')).toContainText(
+    'идёт',
+  );
 
   // Season switch keeps the profile.
   await page.getByLabel('Сезон').selectOption('2025');
@@ -231,4 +242,64 @@ test('header switch moves between F1 and WEC', async ({ page }) => {
   // Back to F1 keeps the season the user was looking at.
   await sw.getByRole('link', { name: 'F1' }).click();
   await expect(page).toHaveURL(/#\/2026$/);
+});
+
+test('driver comparison shows careers and seasons side by side', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./#/2026/drivers');
+  await page.getByRole('link', { name: 'Сравнить пилотов →' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Сравнение пилотов' })).toBeVisible();
+  await page.getByLabel('Пилот 1').selectOption('russell');
+  await page.getByLabel('Пилот 2').selectOption('max_verstappen');
+  await expect(page).toHaveURL(/compare\?a=russell&b=max_verstappen$/);
+
+  const wins = page.locator('.cmp-row', { hasText: 'Победы' });
+  await expect(wins.locator('.cmp-cell--a')).toContainText('8');
+  await expect(wins.locator('.cmp-cell--a')).toHaveClass(/is-lead/);
+  // Verstappen won the finished 2025 season in the fixtures.
+  await expect(page.locator('.cmp-row', { hasText: 'Титулы' }).locator('.cmp-cell--b')).toContainText('1');
+  const seasons = page.locator('.cmp-seasons tbody tr');
+  await expect(seasons).toHaveCount(2);
+  await expect(seasons.nth(1)).toContainText('не выступал');
+
+  // Swap keeps both drivers.
+  await page.getByRole('button', { name: 'Поменять пилотов местами' }).click();
+  await expect(page).toHaveURL(/a=max_verstappen&b=russell/);
+});
+
+test('sprint weekends are marked and can be filtered', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./#/2026/calendar');
+  await expect(page.locator('.race-card--sprint')).toHaveCount(1);
+  await expect(page.locator('.race-card--sprint .sprint-badge')).toBeVisible();
+  await page.getByRole('button', { name: /Спринт-уикенды/ }).click();
+  await expect(page.locator('.race-card')).toHaveCount(1);
+  await expect(page.locator('.race-card')).toContainText('Chinese Grand Prix');
+});
+
+test('flags and car numbers', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./#/2026/drivers');
+  await expect(page.locator('table tbody img.flag')).toHaveCount(3);
+  await expect(page.locator('table tbody .car-number').first()).toHaveText('63');
+  await page.goto('./#/2026/calendar');
+  await expect(page.locator('.race-card img.flag')).toHaveCount(3);
+});
+
+test('pit stops tab with the shortest stop', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./#/2026/race/1');
+  await page.getByRole('tab', { name: 'Пит-стопы' }).click();
+  await expect(
+    page.getByText(/Самое короткое время в пит-лейне: 21\.874 с — Verstappen, круг 21/),
+  ).toBeVisible();
+  await expect(page.locator('[role=tabpanel] table tbody tr')).toHaveCount(2);
+});
+
+test('team history loads on request', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./#/2026/constructor/mercedes');
+  await expect(page.locator('.stat', { hasText: 'Подиумы' })).toContainText('223');
+  await page.getByRole('button', { name: /Показать историю/ }).click();
+  await expect(page.getByRole('table', { name: /Итоги чемпионатов/ }).locator('tbody tr')).toHaveCount(2);
 });

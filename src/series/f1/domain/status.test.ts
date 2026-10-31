@@ -1,4 +1,4 @@
-import { formatDate, formatMoment, formatPoints, utcOffsetLabel } from '../../../lib/format';
+import { durationSeconds, formatDate, formatMoment, formatPoints, utcOffsetLabel } from '../../../lib/format';
 import { findNextRace, raceStatus } from './status';
 import type { RaceEvent } from './types';
 
@@ -89,6 +89,13 @@ describe('format', () => {
   it('full date without a time-zone shift', () => {
     expect(formatDate('1998-02-15')).toMatch(/^15 февраля 1998/);
     expect(formatDate(null)).toBe('Дата не объявлена');
+  });
+
+  it('pit lane durations', () => {
+    expect(durationSeconds('23.456')).toBeCloseTo(23.456);
+    expect(durationSeconds('1:02.345')).toBeCloseTo(62.345);
+    expect(durationSeconds('n/a')).toBeNull();
+    expect(durationSeconds(null)).toBeNull();
   });
 
   it('points', () => {

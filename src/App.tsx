@@ -9,6 +9,7 @@ import { AboutPage } from './series/f1/pages/AboutPage';
 import { CalendarPage } from './series/f1/pages/CalendarPage';
 import { ChartPage } from './series/f1/pages/ChartPage';
 import { CircuitPage } from './series/f1/pages/CircuitPage';
+import { ComparePage } from './series/f1/pages/ComparePage';
 import { ConstructorPage } from './series/f1/pages/ConstructorPage';
 import { ConstructorsPage } from './series/f1/pages/ConstructorsPage';
 import { DriverPage } from './series/f1/pages/DriverPage';
@@ -84,6 +85,7 @@ export function App() {
             <Route path="drivers" element={<DriversPage />} />
             <Route path="constructors" element={<ConstructorsPage />} />
             <Route path="chart" element={<ChartPage />} />
+            <Route path="compare" element={<ComparePage />} />
             <Route path="driver/:driverId" element={<DriverPage />} />
             <Route path="constructor/:constructorId" element={<ConstructorPage />} />
             <Route path="circuit/:circuitId" element={<CircuitPage />} />

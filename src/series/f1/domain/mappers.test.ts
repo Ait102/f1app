@@ -4,6 +4,7 @@ import {
   mapConstructorStandings,
   mapDriverProfile,
   mapDriverStandings,
+  mapPitStops,
   mapRace,
   mapRaceResults,
   mapRaces,
@@ -184,5 +185,20 @@ describe('profiles', () => {
     expect(mapDriverProfile({ driverId: 'x', familyName: 'X', dateOfBirth: '2000-01-01' })?.dateOfBirth).toBe(
       '2000-01-01',
     );
+  });
+});
+
+describe('pit stops and car numbers', () => {
+  it('maps pit stops and skips rows without a driver', () => {
+    const stops = mapPitStops([
+      { driverId: 'hamilton', lap: '10', stop: '1', time: '15:20:01', duration: '22.433' },
+      { lap: '11' },
+    ]);
+    expect(stops).toEqual([{ driverId: 'hamilton', stop: 1, lap: 10, time: '15:20:01', duration: '22.433' }]);
+  });
+
+  it('keeps the car number of a race result', () => {
+    const [r] = mapRaceResults([{ number: '44', position: '1', Driver: { driverId: 'hamilton' } }]);
+    expect(r.number).toBe('44');
   });
 });

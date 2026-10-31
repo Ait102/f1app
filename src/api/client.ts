@@ -68,6 +68,11 @@ export interface ClientOptions {
 export interface GetOptions {
   /** Skip the fresh in-memory cache (user pressed "refresh"). */
   force?: boolean;
+  /**
+   * The data cannot change any more (e.g. final standings of a past season):
+   * a saved copy is used without asking the source again. Saves the rate limit.
+   */
+  immutable?: boolean;
 }
 
 const STORAGE_PREFIX = 'racinghub:v1:';
@@ -95,7 +100,8 @@ export function createClient(options: ClientOptions) {
 
   async function throttle(): Promise<void> {
     if (minIntervalMs <= 0) return;
-    const t = now();
+    // Monotonic clock: pacing must not depend on wall-clock changes (or a frozen clock in tests).
+    const t = performance.now();
     const wait = Math.max(0, nextSlot - t);
     nextSlot = Math.max(t, nextSlot) + minIntervalMs;
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));
@@ -181,8 +187,15 @@ export function createClient(options: ClientOptions) {
   function get(path: string, opts: GetOptions = {}): Promise<Fetched<unknown>> {
     const url = baseUrl + path;
     const cached = memory.get(url);
-    if (!opts.force && cached && now() - cached.fetchedAt < ttlMs) {
+    if (!opts.force && cached && (opts.immutable || now() - cached.fetchedAt < ttlMs)) {
       return Promise.resolve({ data: cached.raw, meta: meta(url, cached.fetchedAt, false) });
+    }
+    if (!opts.force && opts.immutable) {
+      const stored = readStored(url);
+      if (stored) {
+        memory.set(url, stored);
+        return Promise.resolve({ data: stored.raw, meta: meta(url, stored.fetchedAt, false) });
+      }
     }
     const pending = inflight.get(url);
     if (pending) return pending;

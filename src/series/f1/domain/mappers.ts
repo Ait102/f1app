@@ -7,6 +7,7 @@ import type {
   Driver,
   DriverProfile,
   DriverStanding,
+  PitStop,
   QualifyingResult,
   RaceEvent,
   RaceResult,
@@ -147,6 +148,7 @@ export function mapRaceResults(items: unknown[]): RaceResult[] {
     const driver = mapDriver(r.Driver);
     if (!driver) continue;
     out.push({
+      number: str(r.number),
       position: num(r.position),
       positionText: str(r.positionText),
       driver,
@@ -268,4 +270,15 @@ export function ageAt(dateOfBirth: string | null, at: Date): number | null {
 
 export function driverName(d: Driver): string {
   return `${d.givenName} ${d.familyName}`.trim();
+}
+
+export function mapPitStops(items: unknown[]): PitStop[] {
+  const out: PitStop[] = [];
+  for (const item of items) {
+    const r = rec(item);
+    const driverId = str(r.driverId);
+    if (!driverId) continue;
+    out.push({ driverId, stop: num(r.stop), lap: num(r.lap), time: str(r.time), duration: str(r.duration) });
+  }
+  return out;
 }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { DataState } from '../../../components/DataState';
 import { SortableTable, type Column } from '../../../components/SortableTable';
-import { PointsWithBar, posClass, SearchBox } from '../../../components/ui';
+import { PointsWithBar, posClass, SearchBox, WithFlag } from '../../../components/ui';
 import { TeamCell } from '../components/bits';
 import type { ConstructorStanding } from '../domain/types';
 import { useConstructorStandings } from '../hooks/data';
@@ -31,7 +31,7 @@ function makeColumns(leader: number | null | undefined): Column<ConstructorStand
       key: 'nat',
       header: 'Страна',
       optional: true,
-      render: (r) => r.constructor.nationality ?? '—',
+      render: (r) => <WithFlag value={r.constructor.nationality} kind="nationality" />,
       sortValue: (r) => r.constructor.nationality,
     },
     {

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useResource } from '../../../hooks/useResource';
@@ -72,8 +73,32 @@ export function useConstructorSeason(season: number, id: string) {
   );
 }
 
-export function useConstructorWins(id: string) {
-  return useResource(`twins:${id}`, (force) => jolpica.getConstructorWins(id, { force }));
+export function useConstructorCareer(id: string) {
+  return useResource(`tcar:${id}`, (force) => jolpica.getConstructorCareer(id, { force }));
+}
+
+/** Season-by-season championship rows, with progress (one request per season). Off while `seasons` is null. */
+export function useDriverHistory(id: string, seasons: number[] | null) {
+  const [done, setDone] = useState(0);
+  const res = useResource(seasons ? `dhist:${id}:${seasons.join(',')}` : null, (force) => {
+    setDone(0);
+    return jolpica.getDriverHistory(id, seasons!, { force, onProgress: setDone });
+  });
+  return { ...res, done, total: seasons?.length ?? 0 };
+}
+
+/** Same for a team; loads only when `seasons` is given (the user asked for it). */
+export function useConstructorHistory(id: string, seasons: number[] | null) {
+  const [done, setDone] = useState(0);
+  const res = useResource(seasons ? `thist:${id}:${seasons.join(',')}` : null, (force) => {
+    setDone(0);
+    return jolpica.getConstructorHistory(id, seasons!, { force, onProgress: setDone });
+  });
+  return { ...res, done, total: seasons?.length ?? 0 };
+}
+
+export function usePitStops(season: number, round: number) {
+  return useResource(`pits:${season}:${round}`, (force) => jolpica.getPitStops(season, round, { force }));
 }
 
 export function useCircuit(id: string) {

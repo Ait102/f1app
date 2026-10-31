@@ -38,6 +38,8 @@ test('pages match the baselines', async ({ page }) => {
         .first()
         .waitFor({ state: 'detached' })
         .catch(() => {});
+      // Photos arrive after the page itself: wait until each one is shown (or gone).
+      await page.waitForFunction(() => !document.querySelector('figure.photo:not(.is-loaded)'));
       // Fonts, flags and team logos must be in place before the shot.
       await page.evaluate(async () => {
         await document.fonts.ready;

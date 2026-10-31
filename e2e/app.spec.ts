@@ -338,3 +338,25 @@ test('team logos appear in the constructors table', async ({ page }) => {
     await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
   }
 });
+
+test('driver and team pages show a credited photo', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./#/2026/driver/russell');
+  const portrait = page.locator('.page-header figure.photo--portrait');
+  await expect(portrait.locator('img')).toHaveAttribute('src', /portrait\.svg$/);
+  await expect(portrait.locator('figcaption')).toContainText('Фото: Test Photographer, CC BY-SA 4.0');
+  await expect(portrait.getByRole('link', { name: 'CC BY-SA 4.0' })).toHaveAttribute(
+    'href',
+    /creativecommons/,
+  );
+
+  await page.goto('./#/2026/constructor/mercedes');
+  const car = page.locator('.page-header figure.photo--wide');
+  await expect(car.locator('figcaption')).toContainText('Mercedes W17 · сезон 2026');
+  await expect(car.locator('img')).toHaveAttribute('alt', /Mercedes W17/);
+
+  // No photo: no empty frame.
+  await page.goto('./#/2026/driver/antonelli');
+  await expect(page.locator('main h1')).toHaveText(/Antonelli/);
+  await expect(page.locator('figure.photo')).toHaveCount(0);
+});

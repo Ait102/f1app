@@ -21,7 +21,10 @@ const driver = (
 });
 const team = (id: string, name: string, nationality: string) => ({ constructorId: id, name, nationality });
 
-const RUS = driver('russell', 'George', 'Russell', 'RUS', 'British', '63');
+const RUS = {
+  ...driver('russell', 'George', 'Russell', 'RUS', 'British', '63'),
+  url: 'http://en.wikipedia.org/wiki/George_Russell_(racing_driver)',
+};
 const ANT = driver('antonelli', 'Andrea Kimi', 'Antonelli', 'ANT', 'Italian', '12');
 const VER = driver('max_verstappen', 'Max', 'Verstappen', 'VER', 'Dutch', '3');
 const MER = team('mercedes', 'Mercedes', 'German');
@@ -297,9 +300,68 @@ function respond(path: string): object | null {
 type Override = (path: string) => { status: number; headers?: Record<string, string>; body?: string } | null;
 
 /** Serves fixtures for every Jolpica request; `override` can inject failures. */
+// Wikimedia: Russell's article has a photo, the Mercedes car photo exists; nothing else does.
+const PHOTO_SVG = (w: number, h: number, color: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="${color}"/></svg>`;
+
+const PHOTOS: Record<string, [string, number, number]> = {
+  'File:Russell test.jpg': ['portrait.svg', 480, 640],
+  'File:FIA F1 Austria 2026 Nr. 12 Antonelli (1).jpg': ['car.svg', 900, 450],
+};
+
+async function mockWikimedia(page: Page): Promise<void> {
+  const cors = { 'Access-Control-Allow-Origin': '*' };
+  await page.route('https://en.wikipedia.org/w/api.php**', (route) => {
+    const title = new URL(route.request().url()).searchParams.get('titles') ?? '';
+    const pageimage = title.startsWith('George Russell') ? 'Russell test.jpg' : undefined;
+    return route.fulfill({
+      contentType: 'application/json',
+      headers: cors,
+      body: JSON.stringify({ query: { pages: [{ title, ...(pageimage ? { pageimage } : {}) }] } }),
+    });
+  });
+  await page.route('https://commons.wikimedia.org/w/api.php**', (route) => {
+    const title = new URL(route.request().url()).searchParams.get('titles') ?? '';
+    const k = PHOTOS[title];
+    const info = k
+      ? {
+          title,
+          imagerepository: 'local',
+          imageinfo: [
+            {
+              thumburl: `https://upload.wikimedia.org/test/${k[0]}`,
+              thumbwidth: k[1],
+              thumbheight: k[2],
+              descriptionurl: `https://commons.wikimedia.org/wiki/${title}`,
+              extmetadata: {
+                Artist: { value: '<a href="https://example.org">Test Photographer</a>' },
+                LicenseShortName: { value: 'CC BY-SA 4.0' },
+                LicenseUrl: { value: 'https://creativecommons.org/licenses/by-sa/4.0' },
+              },
+            },
+          ],
+        }
+      : { title, missing: true };
+    return route.fulfill({
+      contentType: 'application/json',
+      headers: cors,
+      body: JSON.stringify({ query: { pages: [info] } }),
+    });
+  });
+  await page.route('https://upload.wikimedia.org/test/**', (route) =>
+    route.fulfill({
+      contentType: 'image/svg+xml',
+      body: route.request().url().endsWith('car.svg')
+        ? PHOTO_SVG(900, 450, '#2a6f68')
+        : PHOTO_SVG(480, 640, '#5a4a7a'),
+    }),
+  );
+}
+
 export async function mockApi(page: Page, override?: Override): Promise<string[]> {
   const calls: string[] = [];
   await page.clock.setFixedTime(NOW);
+  await mockWikimedia(page);
   await page.route('https://api.jolpi.ca/ergast/f1/**', async (route: Route) => {
     const url = new URL(route.request().url());
     const path = url.pathname.replace('/ergast/f1', '');

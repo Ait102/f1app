@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
+import { getArticlePhoto, getCommonsPhoto, wikiTitle } from '../../../api/wikimedia';
 import { DataState, ErrorBox, Loading } from '../../../components/DataState';
+import { PhotoFigure, usePhoto } from '../../../components/PhotoFigure';
 import { SortableTable, type Column } from '../../../components/SortableTable';
 import { Flag, Stat, WithFlag } from '../../../components/ui';
 import { formatPoints } from '../../../lib/format';
 import { DriverCell, FavButton, teamColor } from '../components/bits';
 import { SeasonHistory } from '../components/SeasonHistory';
 import { TeamLogo } from '../components/TeamLogo';
+import { CAR_PHOTOS, CAR_PHOTOS_SEASON } from '../data/carPhotos';
 import {
   bestFinish,
   CONSTRUCTORS_CUP_FROM,
@@ -16,7 +19,7 @@ import {
   seasonSpan,
   titleYears,
 } from '../domain/career';
-import type { Driver, RaceWin, RaceWithResults, TeamCareer } from '../domain/types';
+import type { Constructor, Driver, RaceWin, RaceWithResults, TeamCareer } from '../domain/types';
 import {
   useConstructor,
   useConstructorCareer,
@@ -55,7 +58,7 @@ function ConstructorBody({ season, id }: { season: number; id: string }) {
       <nav className="crumbs" aria-label="Навигация">
         <Link to={`/${season}/constructors`}>← Кубок конструкторов {season}</Link>
       </nav>
-      <PageHeader eyebrow="Команда" title={team.name}>
+      <PageHeader eyebrow="Команда" title={team.name} aside={<CarPhotoFigure team={team} />}>
         <div className="team-stripe" style={{ background: teamColor(team) }} aria-hidden="true" />
         <TeamLogo team={team} size="lg" />
         {team.nationality && (
@@ -135,6 +138,24 @@ function ConstructorBody({ season, id }: { season: number; id: string }) {
 
       <SeasonBlock season={season} id={id} />
     </section>
+  );
+}
+
+/** The 2026 car for current teams; otherwise the team article's photo, if any. */
+function CarPhotoFigure({ team }: { team: Constructor }) {
+  const known = CAR_PHOTOS[team.id];
+  const title = wikiTitle(team.url);
+  const key = known ? `car:${known.file}` : title ? `team:${title}` : null;
+  const state = usePhoto(key, () =>
+    known ? getCommonsPhoto(known.file, 900) : getArticlePhoto(title!, { width: 900, photosOnly: true }),
+  );
+  return (
+    <PhotoFigure
+      state={state}
+      alt={known ? `${known.car}, болид ${team.name}` : team.name}
+      caption={known ? `${known.car} · сезон ${CAR_PHOTOS_SEASON}` : undefined}
+      shape="wide"
+    />
   );
 }
 

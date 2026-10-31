@@ -397,3 +397,95 @@
 .name-list .flag {
   flex-shrink: 0;
 }
+
+/* Photo next to the page title (driver portrait, team car) */
+.page-header--aside {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s5, 24px);
+  align-items: center;
+}
+.page-header__main {
+  min-width: 0;
+}
+.photo {
+  margin: 0;
+}
+.photo__frame {
+  overflow: hidden;
+  border-radius: var(--r-lg, 14px);
+  border: 1px solid var(--border);
+  background: linear-gradient(110deg, var(--surface) 30%, var(--surface-2, #1c1f27) 50%, var(--surface) 70%);
+  background-size: 200% 100%;
+  animation: photo-wait 1.4s linear infinite;
+}
+.photo.is-loaded .photo__frame {
+  animation: none;
+  background: var(--surface);
+}
+.photo__frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.photo.is-loaded .photo__frame img {
+  opacity: 1;
+}
+.photo--portrait {
+  width: 180px;
+}
+.photo--portrait .photo__frame {
+  aspect-ratio: 3 / 4;
+}
+.photo--portrait img {
+  object-position: 50% 20%;
+}
+.photo--wide {
+  width: min(520px, 44vw);
+}
+.photo--wide .photo__frame {
+  aspect-ratio: 2 / 1;
+}
+.photo__credit {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+.photo__credit a {
+  color: inherit;
+}
+.photo__caption {
+  color: var(--text, inherit);
+  font-weight: 600;
+}
+@keyframes photo-wait {
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .photo__frame {
+    animation: none;
+  }
+  .photo__frame img {
+    transition: none;
+  }
+}
+@media (max-width: 720px) {
+  .page-header--aside {
+    grid-template-columns: 1fr;
+  }
+  .photo--portrait {
+    width: 150px;
+  }
+  .photo--wide {
+    width: 100%;
+  }
+}

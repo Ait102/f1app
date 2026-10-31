@@ -1,6 +1,8 @@
 import { Link, useParams } from 'react-router-dom';
 
+import { getArticlePhoto, wikiTitle } from '../../../api/wikimedia';
 import { DataState, ErrorBox, Loading, MetaLine } from '../../../components/DataState';
+import { PhotoFigure, usePhoto } from '../../../components/PhotoFigure';
 import { SortableTable, type Column } from '../../../components/SortableTable';
 import { Stat, WithFlag } from '../../../components/ui';
 import { useNow } from '../../../hooks/useNow';
@@ -18,6 +20,13 @@ import {
   useDriverStandings,
 } from '../hooks/data';
 import { ID_RE, NotFoundBlock, PageHeader, SeasonGuard } from './common';
+
+/** Photo from the driver's Wikipedia article, if it is a free photo on Commons. */
+function DriverPhoto({ url, name }: { url: string | null; name: string }) {
+  const title = wikiTitle(url);
+  const state = usePhoto(title && `driver:${title}`, () => getArticlePhoto(title!, { width: 480 }));
+  return <PhotoFigure state={state} alt={name} shape="portrait" />;
+}
 
 export function DriverPage() {
   return <SeasonGuard>{(season) => <DriverProfileView season={season} />}</SeasonGuard>;
@@ -50,7 +59,11 @@ function DriverBody({ season, id }: { season: number; id: string }) {
       <nav className="crumbs" aria-label="Навигация">
         <Link to={`/${season}/drivers`}>← Личный зачёт {season}</Link>
       </nav>
-      <PageHeader eyebrow={`Пилот${d.code ? ' · ' + d.code : ''}`} title={driverName(d)}>
+      <PageHeader
+        eyebrow={`Пилот${d.code ? ' · ' + d.code : ''}`}
+        title={driverName(d)}
+        aside={<DriverPhoto url={d.url} name={driverName(d)} />}
+      >
         <p className="lead profile-facts">
           {d.number && (
             <span className="car-number car-number--big" title="Постоянный номер">

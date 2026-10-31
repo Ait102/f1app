@@ -23,7 +23,7 @@ export function describeError(e: unknown): string {
   if (!(e instanceof ApiError)) return 'Не удалось загрузить данные.';
   switch (e.kind) {
     case 'network':
-      return 'Нет соединения с источником данных. Проверьте интернет и повторите.';
+      return 'Источник данных не ответил. Проверьте интернет; если он есть — скорее всего, исчерпан лимит запросов к API (500 в час), повторите через несколько минут.';
     case 'timeout':
       return 'Источник данных не ответил вовремя.';
     case 'rate-limit':
@@ -59,6 +59,12 @@ export interface ClientOptions {
   ttlMs?: number;
   /** Minimal gap between request starts, to respect the source's rate limit. */
   minIntervalMs?: number;
+  /** Extra attempts after 429, a network error, a timeout or HTTP 5xx. */
+  retries?: number;
+  /** First pause before a retry; doubles every attempt unless the source says how long to wait. */
+  retryBaseMs?: number;
+  /** A longer wait (e.g. the hourly limit is used up) is not worth retrying: the error is shown instead. */
+  maxRetryWaitMs?: number;
   /** Base URL of the data source, e.g. https://api.jolpi.ca/ergast/f1 */
   baseUrl: string;
   /** Source name shown next to the data, e.g. "Jolpica-F1". */
@@ -73,6 +79,8 @@ export interface GetOptions {
    * a saved copy is used without asking the source again. Saves the rate limit.
    */
   immutable?: boolean;
+  /** How old a saved copy may be to be used without a request (default: the client's TTL). */
+  maxAgeMs?: number;
 }
 
 const STORAGE_PREFIX = 'racinghub:v1:';
@@ -91,7 +99,10 @@ export function createClient(options: ClientOptions) {
   const storage = options.storage === undefined ? defaultStorage() : options.storage;
   const timeoutMs = options.timeoutMs ?? 12_000;
   const ttlMs = options.ttlMs ?? 10 * 60 * 1000;
-  const minIntervalMs = options.minIntervalMs ?? 260;
+  const minIntervalMs = options.minIntervalMs ?? 300;
+  const retries = options.retries ?? 3;
+  const retryBaseMs = options.retryBaseMs ?? 1000;
+  const maxRetryWaitMs = options.maxRetryWaitMs ?? 20_000;
   const { baseUrl, provider } = options;
 
   const memory = new Map<string, CacheEntry>();
@@ -138,6 +149,34 @@ export function createClient(options: ClientOptions) {
     };
   }
 
+  /** Pauses the whole queue, so the requests behind this one do not hit the limit too. */
+  function pauseQueue(ms: number): void {
+    nextSlot = Math.max(nextSlot, performance.now() + ms);
+  }
+
+  function retryable(e: unknown): e is ApiError {
+    if (!(e instanceof ApiError)) return false;
+    if (e.kind === 'http') return (e.status ?? 0) >= 500;
+    return e.kind === 'rate-limit' || e.kind === 'network' || e.kind === 'timeout';
+  }
+
+  async function requestWithRetry(url: string): Promise<unknown> {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await request(url);
+      } catch (e) {
+        if (attempt >= retries || !retryable(e)) throw e;
+        const wait =
+          e.retryAfterSec !== undefined
+            ? e.retryAfterSec * 1000
+            : retryBaseMs * 2 ** attempt * (1 + Math.random() * 0.25);
+        if (wait > maxRetryWaitMs) throw e;
+        if (e.kind === 'rate-limit') pauseQueue(wait);
+        await new Promise((r) => setTimeout(r, wait));
+      }
+    }
+  }
+
   async function request(url: string): Promise<unknown> {
     await throttle();
     const ctrl = new AbortController();
@@ -156,12 +195,14 @@ export function createClient(options: ClientOptions) {
     }
     try {
       if (res.status === 429) {
-        throw new ApiError(
-          'rate-limit',
-          'Rate limited',
-          429,
-          parseRetryAfter(res.headers.get('Retry-After'), now()),
-        );
+        let retryAfter = parseRetryAfter(res.headers.get('Retry-After'), now());
+        if (retryAfter === undefined) {
+          // Jolpica has no Retry-After header but may say "Expected available in N seconds".
+          const body = await res.text().catch(() => '');
+          const m = /available in (\d+) second/i.exec(body);
+          if (m) retryAfter = Number(m[1]);
+        }
+        throw new ApiError('rate-limit', 'Rate limited', 429, retryAfter);
       }
       if (!res.ok) throw new ApiError('http', `HTTP ${res.status}`, res.status);
       let text: string;
@@ -187,12 +228,15 @@ export function createClient(options: ClientOptions) {
   function get(path: string, opts: GetOptions = {}): Promise<Fetched<unknown>> {
     const url = baseUrl + path;
     const cached = memory.get(url);
-    if (!opts.force && cached && (opts.immutable || now() - cached.fetchedAt < ttlMs)) {
+    const maxAge = opts.immutable ? Infinity : (opts.maxAgeMs ?? ttlMs);
+    const fresh = (e: CacheEntry) => now() - e.fetchedAt < maxAge;
+    if (!opts.force && cached && fresh(cached)) {
       return Promise.resolve({ data: cached.raw, meta: meta(url, cached.fetchedAt, false) });
     }
-    if (!opts.force && opts.immutable) {
+    // A fresh enough copy saved by an earlier visit saves a request (the hourly limit is small).
+    if (!opts.force) {
       const stored = readStored(url);
-      if (stored) {
+      if (stored && fresh(stored)) {
         memory.set(url, stored);
         return Promise.resolve({ data: stored.raw, meta: meta(url, stored.fetchedAt, false) });
       }
@@ -202,7 +246,7 @@ export function createClient(options: ClientOptions) {
 
     const p = (async () => {
       try {
-        const raw = await request(url);
+        const raw = await requestWithRetry(url);
         const entry = { raw, fetchedAt: now() };
         memory.set(url, entry);
         writeStored(url, entry);

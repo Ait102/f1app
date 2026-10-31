@@ -1,7 +1,7 @@
 // Jolpica-F1 endpoints mapped to the internal model.
 import { ApiError, createClient, type ApiClient, type GetOptions } from '../../../api/client';
 import type { DataMeta, Fetched } from '../../../api/types';
-import { addCounts, CONSTRUCTORS_CUP_FROM } from '../domain/career';
+import { addCounts, CONSTRUCTORS_CUP_FROM, countOneTwos, winSpan } from '../domain/career';
 import {
   arr,
   mapCircuit,
@@ -44,10 +44,15 @@ import type {
 export const JOLPICA_BASE = 'https://api.jolpi.ca/ergast/f1';
 export const JOLPICA_PROVIDER = 'Jolpica-F1';
 
-/** Shared client for the app; Jolpica allows ~4 requests per second without a token. */
-const jolpicaClient = createClient({ baseUrl: JOLPICA_BASE, provider: JOLPICA_PROVIDER, minIntervalMs: 260 });
+/**
+ * Shared client for the app. Jolpica allows 4 requests per second and 500 per hour
+ * without a token; requests are spaced out and retried on 429.
+ */
+const jolpicaClient = createClient({ baseUrl: JOLPICA_BASE, provider: JOLPICA_PROVIDER, minIntervalMs: 300 });
 
 const PAGE_LIMIT = 100;
+/** Career totals change at most once a race weekend: a saved copy this old is fine. */
+const CAREER_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 const MAX_PAGES = 20;
 
 type MR = Record<string, unknown>;
@@ -125,9 +130,10 @@ async function seasonBySeason(
   load: (year: number) => Promise<{ row: SeasonStanding; meta: DataMeta }>,
 ): Promise<Fetched<SeasonHistory>> {
   const rows: SeasonStanding[] = [];
-  const failed: number[] = [];
+  let failed: number[] = [];
   const metas: DataMeta[] = [];
   let firstError: unknown = null;
+  let limited = false;
   for (let i = 0; i < seasons.length; i++) {
     try {
       const { row, meta } = await load(seasons[i]);
@@ -136,12 +142,29 @@ async function seasonBySeason(
     } catch (e) {
       failed.push(seasons[i]);
       firstError ??= e;
+      // The client already waited and retried: a limit that is still hit means a long wait.
       if (e instanceof ApiError && e.kind === 'rate-limit') {
         failed.push(...seasons.slice(i + 1));
+        limited = true;
         break;
       }
     }
     opts?.onProgress?.(i + 1, seasons.length);
+  }
+  // One more pass for seasons that failed on a passing network hiccup.
+  if (failed.length > 0 && !limited) {
+    const again = failed;
+    failed = [];
+    for (const year of again) {
+      try {
+        const { row, meta } = await load(year);
+        rows.push(row);
+        metas.push(meta);
+      } catch {
+        failed.push(year);
+      }
+    }
+    rows.sort((x, y) => x.season - y.season);
   }
   if (seasons.length > 0 && metas.length === 0) throw firstError ?? new Error('No standings');
   const meta: DataMeta = metas.length
@@ -191,8 +214,9 @@ export function createJolpica(api: ApiClient = jolpicaClient) {
       return { data: mergeRacesByRound(res.data.items), meta: res.meta };
     },
 
-    async getDriverCareer(id: string, opts?: GetOptions): Promise<Fetched<CareerCounts>> {
+    async getDriverCareer(id: string, getOpts?: GetOptions): Promise<Fetched<CareerCounts>> {
       const base = idPath('drivers', id);
+      const opts = { maxAgeMs: CAREER_MAX_AGE_MS, ...getOpts };
       const [starts, wins, p2, p3, poles, fastest, seasons, teams] = await Promise.all([
         count(api, `${base}/results/`, opts),
         count(api, `${base}/results/1/`, opts),
@@ -268,26 +292,56 @@ export function createJolpica(api: ApiClient = jolpicaClient) {
       };
     },
 
-    async getConstructorCareer(id: string, opts?: GetOptions): Promise<Fetched<TeamCareer>> {
+    async getConstructorCareer(id: string, getOpts?: GetOptions): Promise<Fetched<TeamCareer>> {
       const base = idPath('constructors', id);
-      const [wins, p2, p3, poles, drivers, seasons] = await Promise.all([
-        count(api, `${base}/results/1/`, opts),
-        count(api, `${base}/results/2/`, opts),
+      const opts = { maxAgeMs: CAREER_MAX_AGE_MS, ...getOpts };
+      // Wins and second places are loaded as lists: they give 1–2 finishes and the first/last win.
+      const [starts, wins, p2, p3, poles, fastest, drivers, seasons] = await Promise.all([
+        count(api, `${base}/races/`, opts),
+        getPaged(api, `${base}/results/1/`, racesOf, opts),
+        getPaged(api, `${base}/results/2/`, racesOf, opts),
         count(api, `${base}/results/3/`, opts),
         count(api, `${base}/qualifying/1/`, opts),
+        count(api, `${base}/fastest/1/results/`, opts),
         count(api, `${base}/drivers/`, opts),
         getPaged(api, `${base}/seasons/`, (mr) => arr(rec(mr.SeasonTable).Seasons), opts),
       ]);
+      const won = mergeRacesByRound(wins.data.items);
+      const second = mergeRacesByRound(p2.data.items);
+      // Totals from the source; the lists are only used for what a total cannot tell.
+      const winCount = num(wins.data.mr.total) ?? won.length;
+      const secondCount = num(p2.data.mr.total) ?? second.length;
+      const span = winSpan(won);
       return {
         data: {
-          wins: wins.data,
-          podiums: addCounts(wins.data, p2.data, p3.data),
+          starts: starts.data,
+          wins: winCount,
+          podiums: addCounts(winCount, secondCount, p3.data),
+          oneTwos: countOneTwos(won, second),
           poles: poles.data,
+          fastestLaps: fastest.data,
+          firstWin: span.first,
+          lastWin: span.last,
           drivers: drivers.data,
           seasons: yearsOf(seasons.data.items),
         },
-        meta: mergeMeta([wins, p2, p3, poles, drivers, seasons].map((x) => x.meta)),
+        meta: mergeMeta([starts, wins, p2, p3, poles, fastest, drivers, seasons].map((x) => x.meta)),
       };
+    },
+
+    /** Everyone who drove for the team, by name. */
+    async getConstructorDrivers(id: string, opts?: GetOptions): Promise<Fetched<Driver[]>> {
+      const res = await getPaged(
+        api,
+        `${idPath('constructors', id)}/drivers/`,
+        (mr) => arr(rec(mr.DriverTable).Drivers),
+        { maxAgeMs: CAREER_MAX_AGE_MS, ...opts },
+      );
+      const drivers = res.data.items.map(mapDriver).filter((d): d is Driver => d !== null);
+      drivers.sort(
+        (a, b) => a.familyName.localeCompare(b.familyName) || a.givenName.localeCompare(b.givenName),
+      );
+      return { data: drivers, meta: res.meta };
     },
 
     /** Constructors' championship row for each season from 1958 on (one request per season). */

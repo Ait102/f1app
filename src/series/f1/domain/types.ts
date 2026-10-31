@@ -130,11 +130,26 @@ export interface CareerCounts {
 }
 
 /** Career totals of a team, read from the source's row counts. */
+/** A race won, with who won it. */
+export interface RaceWin {
+  season: number;
+  round: number;
+  name: string;
+  driver: Driver | null;
+}
+
 export interface TeamCareer {
+  /** Races entered, as counted by the source. */
+  starts: number | null;
   wins: number | null;
   /** Podium finishes by car (two cars can both finish on the podium). */
   podiums: number | null;
+  /** Races with the team's cars first and second. */
+  oneTwos: number | null;
   poles: number | null;
+  fastestLaps: number | null;
+  firstWin: RaceWin | null;
+  lastWin: RaceWin | null;
   seasons: number[];
   drivers: number | null;
 }

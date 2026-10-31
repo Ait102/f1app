@@ -22,6 +22,8 @@ const ROUTES = [
 
 test('pages match the baselines', async ({ page }) => {
   test.setTimeout(300_000);
+  // The site drops its entrance animations for reduced motion: screenshots stay stable.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await mockApi(page);
 
   for (const width of [1280, 375]) {
@@ -36,6 +38,20 @@ test('pages match the baselines', async ({ page }) => {
         .first()
         .waitFor({ state: 'detached' })
         .catch(() => {});
+      // Fonts, flags and team logos must be in place before the shot.
+      await page.evaluate(async () => {
+        await document.fonts.ready;
+        await Promise.all(
+          [...document.images].map((img) => {
+            img.loading = 'eager'; // lazy images below the fold would never load otherwise
+            if (img.complete) return null;
+            return new Promise((r) => {
+              img.addEventListener('load', r, { once: true });
+              img.addEventListener('error', r, { once: true });
+            });
+          }),
+        );
+      });
       await page.waitForTimeout(1200);
       await expect(page).toHaveScreenshot(`w${width}${route.replace(/[^a-z0-9]+/gi, '-')}.png`, {
         fullPage: true,

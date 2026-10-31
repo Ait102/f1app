@@ -3,21 +3,24 @@ import { Link, useParams } from 'react-router-dom';
 
 import { DataState, ErrorBox, Loading } from '../../../components/DataState';
 import { SortableTable, type Column } from '../../../components/SortableTable';
-import { Stat, WithFlag } from '../../../components/ui';
+import { Flag, Stat, WithFlag } from '../../../components/ui';
 import { formatPoints } from '../../../lib/format';
 import { DriverCell, FavButton, teamColor } from '../components/bits';
 import { SeasonHistory } from '../components/SeasonHistory';
+import { TeamLogo } from '../components/TeamLogo';
 import {
+  bestFinish,
   CONSTRUCTORS_CUP_FROM,
   polesIncomplete,
   QUALIFYING_DATA_FROM,
   seasonSpan,
   titleYears,
 } from '../domain/career';
-import type { Driver, RaceWithResults, TeamCareer } from '../domain/types';
+import type { Driver, RaceWin, RaceWithResults, TeamCareer } from '../domain/types';
 import {
   useConstructor,
   useConstructorCareer,
+  useConstructorDrivers,
   useConstructorHistory,
   useConstructorSeason,
   useConstructorStandings,
@@ -54,6 +57,7 @@ function ConstructorBody({ season, id }: { season: number; id: string }) {
       </nav>
       <PageHeader eyebrow="Команда" title={team.name}>
         <div className="team-stripe" style={{ background: teamColor(team) }} aria-hidden="true" />
+        <TeamLogo team={team} size="lg" />
         {team.nationality && (
           <p className="lead">
             <WithFlag value={team.nationality} kind="nationality" />
@@ -97,12 +101,23 @@ function ConstructorBody({ season, id }: { season: number; id: string }) {
             {(c) => (
               <>
                 <div className="stats stats--grid">
+                  <Stat label="Гонки" value={c.starts} />
                   <Stat label="Победы" value={c.wins} />
                   <Stat label="Подиумы (машины)" value={c.podiums} />
+                  <Stat label="Дубли 1–2" value={c.oneTwos} />
                   <Stat label={polesIncomplete(c.seasons) ? 'Поулы*' : 'Поулы'} value={c.poles} />
+                  <Stat label="Быстрые круги" value={c.fastestLaps} />
                   <Stat label="Сезоны" value={c.seasons.length} />
                   <Stat label="Пилотов" value={c.drivers} />
                 </div>
+                {(c.firstWin || c.lastWin) && (
+                  <dl className="win-span">
+                    {c.firstWin && <WinRow label="Первая победа" win={c.firstWin} />}
+                    {c.lastWin && c.lastWin !== c.firstWin && (
+                      <WinRow label="Последняя победа" win={c.lastWin} />
+                    )}
+                  </dl>
+                )}
                 {polesIncomplete(c.seasons) && (
                   <p className="muted small">
                     * Поулы считаются по результатам квалификаций, а они есть у источника только с{' '}
@@ -116,9 +131,65 @@ function ConstructorBody({ season, id }: { season: number; id: string }) {
       </div>
 
       {career.status === 'success' && <TeamHistory id={id} career={career.data} />}
+      {career.status === 'success' && <TeamDrivers id={id} season={season} total={career.data.drivers} />}
 
       <SeasonBlock season={season} id={id} />
     </section>
+  );
+}
+
+function WinRow({ label, win }: { label: string; win: RaceWin }) {
+  return (
+    <div>
+      <dt>{label}</dt>
+      <dd>
+        <Link to={`/${win.season}/race/${win.round}`}>
+          {win.name} {win.season}
+        </Link>
+        {win.driver && (
+          <>
+            {' · '}
+            <Link to={`/${win.season}/driver/${win.driver.id}`}>
+              {win.driver.givenName} {win.driver.familyName}
+            </Link>
+          </>
+        )}
+      </dd>
+    </div>
+  );
+}
+
+/** Everyone who drove for the team. Loaded on request (one or two requests). */
+function TeamDrivers({ id, season, total }: { id: string; season: number; total: number | null }) {
+  const [open, setOpen] = useState(false);
+  const drivers = useConstructorDrivers(id, open);
+  if (total === 0) return null;
+  return (
+    <>
+      <h2 className="section-title">Пилоты за всю историю</h2>
+      {!open ? (
+        <p>
+          <button type="button" className="btn btn--ghost" onClick={() => setOpen(true)}>
+            Показать всех пилотов{total !== null ? ` (${total})` : ''}
+          </button>
+        </p>
+      ) : (
+        <DataState state={drivers} isEmpty={(d) => d.length === 0} emptyText="Источник не указывает пилотов.">
+          {(list) => (
+            <ul className="name-list">
+              {list.map((p) => (
+                <li key={p.id}>
+                  <Link to={`/${season}/driver/${p.id}`}>
+                    {p.givenName} <strong>{p.familyName}</strong>
+                  </Link>
+                  {p.nationality && <Flag value={p.nationality} kind="nationality" />}
+                </li>
+              ))}
+            </ul>
+          )}
+        </DataState>
+      )}
+    </>
   );
 }
 
@@ -207,6 +278,7 @@ function TeamHistory({ id, career }: { id: string; career: TeamCareer }) {
   const [open, setOpen] = useState(false);
   const history = useConstructorHistory(id, open ? seasons : null);
   const titles = history.status === 'success' ? titleYears(history.data.rows) : null;
+  const best = history.status === 'success' ? bestFinish(history.data.rows) : null;
 
   if (seasons.length === 0) return null;
   return (
@@ -223,6 +295,11 @@ function TeamHistory({ id, career }: { id: string; career: TeamCareer }) {
           {titles && titles.length > 0 && (
             <p className="small">
               <span className="title-star">★</span> Кубок конструкторов: {titles.join(', ')}
+            </p>
+          )}
+          {titles && titles.length === 0 && best && (
+            <p className="small">
+              Лучшее место в Кубке: {best.position} ({best.seasons.join(', ')})
             </p>
           )}
           <SeasonHistory state={history} kind="team" link={(y) => `/${y}/constructor/${id}`} />

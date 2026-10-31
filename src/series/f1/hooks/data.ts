@@ -77,6 +77,13 @@ export function useConstructorCareer(id: string) {
   return useResource(`tcar:${id}`, (force) => jolpica.getConstructorCareer(id, { force }));
 }
 
+/** Everyone who drove for the team; off until the user opens the list. */
+export function useConstructorDrivers(id: string, enabled: boolean) {
+  return useResource(enabled ? `tdrivers:${id}` : null, (force) =>
+    jolpica.getConstructorDrivers(id, { force }),
+  );
+}
+
 /** Season-by-season championship rows, with progress (one request per season). Off while `seasons` is null. */
 export function useDriverHistory(id: string, seasons: number[] | null) {
   const [done, setDone] = useState(0);

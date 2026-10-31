@@ -1,6 +1,6 @@
 // Helpers for career statistics. Everything here works on counts and table
 // rows the source already published: no points are summed or recalculated.
-import type { SeasonStanding } from './types';
+import type { RaceWin, RaceWithResults, SeasonStanding } from './types';
 
 /** Qualifying results in the source start in 1994: earlier poles are not counted. */
 export const QUALIFYING_DATA_FROM = 1994;
@@ -16,6 +16,29 @@ export function addCounts(...parts: Array<number | null>): number | null {
 /** True when part of the career is older than the qualifying data, so poles are incomplete. */
 export function polesIncomplete(seasons: number[]): boolean {
   return seasons.length > 0 && Math.min(...seasons) < QUALIFYING_DATA_FROM;
+}
+
+/** Races where the team has both the winner and the runner-up. */
+export function countOneTwos(wins: RaceWithResults[], seconds: RaceWithResults[]): number {
+  const won = new Set(wins.map((r) => `${r.race.seasonYear}:${r.race.round}`));
+  return seconds.filter((r) => won.has(`${r.race.seasonYear}:${r.race.round}`)).length;
+}
+
+/** First and last win from a list of won races (sorted or not). */
+export function winSpan(wins: RaceWithResults[]): { first: RaceWin | null; last: RaceWin | null } {
+  const sorted = [...wins].sort(
+    (a, b) => a.race.seasonYear - b.race.seasonYear || a.race.round - b.race.round,
+  );
+  const toWin = (r: RaceWithResults | undefined): RaceWin | null =>
+    r
+      ? {
+          season: r.race.seasonYear,
+          round: r.race.round,
+          name: r.race.name,
+          driver: r.results.find((x) => x.position === 1)?.driver ?? r.results[0]?.driver ?? null,
+        }
+      : null;
+  return { first: toWin(sorted[0]), last: toWin(sorted[sorted.length - 1]) };
 }
 
 /** "2007–2026", "1950" or null. */

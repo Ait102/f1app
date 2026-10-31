@@ -5,6 +5,7 @@ import { STATUS_LABELS, type RaceStatus } from '../domain/status';
 import type { Constructor, Driver } from '../domain/types';
 import { useSeasonParam } from '../hooks/data';
 import { useFavorites, type FavKind } from '../hooks/useFavorites';
+import { TeamLogo } from './TeamLogo';
 
 // Decorative team accents only (not data). Unknown teams get a neutral color.
 const TEAM_COLORS: Record<string, string> = {
@@ -65,7 +66,7 @@ export function TeamCell({ team, season }: { team: Constructor | null; season?: 
   if (!team) return <span className="muted">—</span>;
   return (
     <span className="team">
-      <span className="team-dot" style={{ background: teamColor(team) }} aria-hidden="true" />
+      <TeamLogo team={team} />
       {linkSeason ? (
         <Link className="profile-link" to={`/${linkSeason}/constructor/${team.id}`}>
           {team.name}

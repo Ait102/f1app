@@ -1,13 +1,15 @@
 import {
   addCounts,
   bestFinish,
+  countOneTwos,
   leader,
   pairSeasons,
   polesIncomplete,
   seasonSpan,
   titleYears,
+  winSpan,
 } from './career';
-import type { SeasonStanding } from './types';
+import type { RaceWithResults, SeasonStanding } from './types';
 
 const row = (season: number, position: number | null, final = true): SeasonStanding => ({
   season,
@@ -57,5 +59,29 @@ describe('career helpers', () => {
     expect(leader(5, 5)).toBe('tie');
     expect(leader(2, 1, 'lower')).toBe('b');
     expect(leader(null, 1)).toBeNull();
+  });
+});
+
+const won = (season: number, round: number, driverId = 'x'): RaceWithResults => ({
+  race: { seasonYear: season, round, name: `GP ${round}` } as RaceWithResults['race'],
+  results: [
+    {
+      position: 1,
+      driver: { id: driverId, givenName: 'A', familyName: driverId },
+    } as RaceWithResults['results'][0],
+  ],
+});
+
+describe('team wins', () => {
+  it('counts 1–2 finishes as races in both lists', () => {
+    expect(countOneTwos([won(2020, 1), won(2020, 2), won(2021, 1)], [won(2020, 2), won(2021, 3)])).toBe(1);
+    expect(countOneTwos([], [won(2020, 2)])).toBe(0);
+  });
+
+  it('finds the first and last win in any order', () => {
+    const s = winSpan([won(2021, 5, 'b'), won(1999, 3, 'a'), won(2021, 2)]);
+    expect([s.first?.season, s.first?.round, s.first?.driver?.id]).toEqual([1999, 3, 'a']);
+    expect([s.last?.season, s.last?.round, s.last?.driver?.id]).toEqual([2021, 5, 'b']);
+    expect(winSpan([])).toEqual({ first: null, last: null });
   });
 });

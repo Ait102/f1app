@@ -186,9 +186,24 @@ function respond(path: string): object | null {
       },
     });
   }
-  if ((m = path.match(/^\/constructors\/(\w+)\/results\/([23])\/$/))) return mr(40, {});
+  if ((m = path.match(/^\/constructors\/(\w+)\/results\/2\/$/))) {
+    // One second place in a race the team also won: a 1–2 finish.
+    const won = {
+      season: '2025',
+      round: '2',
+      raceName: 'Chinese Grand Prix',
+      Results: [{ position: '2', Driver: ANT }],
+    };
+    return mr(40, { RaceTable: { Races: m[1] === 'mercedes' ? [won] : [] } });
+  }
+  if ((m = path.match(/^\/constructors\/(\w+)\/results\/3\/$/))) return mr(40, {});
   if ((m = path.match(/^\/constructors\/(\w+)\/qualifying\/1\/$/))) return mr(120, {});
-  if ((m = path.match(/^\/constructors\/(\w+)\/drivers\/$/))) return mr(30, {});
+  if ((m = path.match(/^\/constructors\/(\w+)\/races\/$/))) return mr(330, {});
+  if ((m = path.match(/^\/constructors\/(\w+)\/fastest\/1\/results\/$/))) return mr(101, {});
+  if ((m = path.match(/^\/constructors\/(\w+)\/drivers\/$/))) {
+    const ds = m[1] === 'mercedes' ? [ANT, RUS] : [VER];
+    return mr(m[1] === 'mercedes' ? 2 : 1, { DriverTable: { Drivers: ds } });
+  }
   if ((m = path.match(/^\/constructors\/(\w+)\/seasons\/$/))) {
     return mr(2, { SeasonTable: { Seasons: [{ season: '2025' }, { season: '2026' }] } });
   }
@@ -225,7 +240,26 @@ function respond(path: string): object | null {
     const t = allTeams.find((x) => x.constructorId === m![1]);
     return mr(t ? 1 : 0, { ConstructorTable: { Constructors: t ? [t] : [] } });
   }
-  if ((m = path.match(/^\/constructors\/(\w+)\/results\/1\/$/))) return mr(143, {});
+  if ((m = path.match(/^\/constructors\/(\w+)\/results\/1\/$/))) {
+    const wins =
+      m[1] === 'mercedes'
+        ? [
+            {
+              season: '2025',
+              round: '2',
+              raceName: 'Chinese Grand Prix',
+              Results: [{ position: '1', Driver: RUS }],
+            },
+            {
+              season: '2014',
+              round: '1',
+              raceName: 'Australian Grand Prix',
+              Results: [{ position: '1', Driver: RUS }],
+            },
+          ]
+        : [];
+    return mr(143, { RaceTable: { Races: wins } });
+  }
   if ((m = path.match(/^\/(\d{4})\/constructors\/(\w+)\/drivers\/$/))) {
     const ds = results.filter((x) => x.Constructor.constructorId === m![2]).map((x) => x.Driver);
     return mr(ds.length, { DriverTable: { Drivers: ds } });

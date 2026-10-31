@@ -306,3 +306,94 @@
     font-size: 0.68rem;
   }
 }
+
+/* Team badge (or a licensed logo, see series/f1/data/logos.ts) */
+.team-logo {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+.team-logo--sm {
+  min-width: 30px;
+  height: 18px;
+  padding: 0 4px;
+  font-size: 0.6rem;
+}
+.team-logo--lg {
+  min-width: 72px;
+  height: 44px;
+  padding: 0 10px;
+  margin: 4px 0 8px;
+  font-size: 1.15rem;
+  border-radius: 10px;
+}
+/* Emblem in a circle of a darker team color */
+.team-logo--emblem {
+  border-radius: 50%;
+  padding: 0;
+  background: color-mix(in srgb, var(--team) 70%, #000);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.team-logo--sm.team-logo--emblem {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+}
+.team-logo--lg.team-logo--emblem {
+  width: 76px;
+  min-width: 76px;
+  height: 76px;
+}
+.team-logo__img {
+  width: 64%;
+  height: 64%;
+  object-fit: contain;
+}
+.team-logo__img--white {
+  filter: brightness(0) invert(1);
+}
+.team-logo__img--invert {
+  filter: invert(1) grayscale(1) brightness(1.4);
+}
+
+/* First / last win */
+.win-span {
+  display: grid;
+  gap: 6px;
+  margin: 14px 0 0;
+}
+.win-span div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+.win-span dt {
+  color: var(--muted);
+  min-width: 9.5em;
+}
+.win-span dd {
+  margin: 0;
+}
+
+/* All drivers of a team */
+.name-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 6px 16px;
+}
+.name-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.name-list .flag {
+  flex-shrink: 0;
+}

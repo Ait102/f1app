@@ -25,6 +25,7 @@ function setup(fetchFn: typeof fetch, extra: Partial<Parameters<typeof createCli
     fetchFn,
     storage,
     minIntervalMs: 0,
+    retries: 0,
     baseUrl: 'https://x',
     provider: 'Jolpica-F1',
     now: () => t,
@@ -66,6 +67,7 @@ describe('client.get', () => {
       fetchFn: f,
       storage,
       minIntervalMs: 0,
+      retries: 0,
       baseUrl: 'https://x',
       provider: 'Jolpica-F1',
     });
@@ -76,6 +78,31 @@ describe('client.get', () => {
 
     // "Refresh" still goes to the source.
     await fresh.get('/2008/standings/', { immutable: true, force: true });
+    expect(f).toHaveBeenCalledTimes(2);
+  });
+
+  it('reuses a fresh saved copy after a reload, and maxAgeMs extends it', async () => {
+    const f = vi.fn(async () => ok(MR({ x: 2 })));
+    const { client, storage } = setup(f);
+    await client.get('/career/');
+    const again = () =>
+      createClient({
+        fetchFn: f,
+        storage,
+        minIntervalMs: 0,
+        retries: 0,
+        baseUrl: 'https://x',
+        provider: 'p',
+        now: () => 1_000_000 + elapsed,
+      });
+    let elapsed = 5 * 60 * 1000;
+    await again().get('/career/');
+    expect(f).toHaveBeenCalledTimes(1);
+
+    elapsed = 2 * 60 * 60 * 1000;
+    await again().get('/career/', { maxAgeMs: 6 * 60 * 60 * 1000 });
+    expect(f).toHaveBeenCalledTimes(1);
+    await again().get('/career/');
     expect(f).toHaveBeenCalledTimes(2);
   });
 
@@ -100,6 +127,47 @@ describe('client.get', () => {
     expect(err.kind).toBe('rate-limit');
     expect(err.retryAfterSec).toBe(7);
     expect(describeError(err)).toMatch(/7 с/);
+  });
+
+  it('retries 429, network errors and 5xx, then succeeds', async () => {
+    const replies = [
+      () => new Response('{"detail":"Request was throttled."}', { status: 429 }),
+      () => {
+        throw new TypeError('Failed to fetch');
+      },
+      () => new Response('', { status: 503 }),
+      () => ok(MR({ x: 1 })),
+    ];
+    let i = 0;
+    const f = vi.fn(async () => replies[i++]());
+    const { client } = setup(f as unknown as typeof fetch, { retries: 3, retryBaseMs: 1 });
+    const r = await client.get('/1985/standings/');
+    expect(f).toHaveBeenCalledTimes(4);
+    expect(r.data).toEqual(MR({ x: 1 }));
+  });
+
+  it('gives up after the last retry and does not retry 404', async () => {
+    const f429 = vi.fn(async () => new Response('', { status: 429 }));
+    const a = setup(f429, { retries: 2, retryBaseMs: 1 });
+    await expect(a.client.get('/a')).rejects.toMatchObject({ kind: 'rate-limit' });
+    expect(f429).toHaveBeenCalledTimes(3);
+
+    const f404 = vi.fn(async () => new Response('', { status: 404 }));
+    const b = setup(f404, { retries: 2, retryBaseMs: 1 });
+    await expect(b.client.get('/a')).rejects.toMatchObject({ kind: 'http', status: 404 });
+    expect(f404).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads the wait from the body and skips retrying a long wait', async () => {
+    const f = vi.fn(
+      async () =>
+        new Response('{"detail":"Request was throttled. Expected available in 1800 seconds."}', {
+          status: 429,
+        }),
+    );
+    const { client } = setup(f, { retries: 3, retryBaseMs: 1 });
+    await expect(client.get('/a')).rejects.toMatchObject({ kind: 'rate-limit', retryAfterSec: 1800 });
+    expect(f).toHaveBeenCalledTimes(1);
   });
 
   it('maps invalid JSON and missing MRData to parse errors', async () => {
@@ -135,13 +203,14 @@ describe('client.get', () => {
     // Same session: memory copy.
     const r1 = await client.get('/a', { force: true });
     expect(r1.meta.stale).toBe(true);
-    expect(r1.meta.staleReason).toMatch(/соединения/);
+    expect(r1.meta.staleReason).toMatch(/не ответил/);
 
     // New session: localStorage copy.
     const fresh = createClient({
       fetchFn: f,
       storage,
       minIntervalMs: 0,
+      retries: 0,
       baseUrl: 'https://x',
       provider: 'Jolpica-F1',
     });

@@ -64,7 +64,8 @@ test('HTTP 429 shows a clear message and retry recovers', async ({ page }) => {
   );
   await page.goto('./#/2026/drivers');
   const alert = page.getByRole('alert');
-  await expect(alert).toContainText('HTTP 429');
+  // The client retries 429 a few times before giving up.
+  await expect(alert).toContainText('HTTP 429', { timeout: 30_000 });
   await expect(alert).toContainText('Повторите немного позже');
 
   limited = false;
@@ -75,7 +76,7 @@ test('HTTP 429 shows a clear message and retry recovers', async ({ page }) => {
 test('network failure keeps the UI working', async ({ page }) => {
   await mockApi(page, (path) => (path.includes('/races/') ? { status: 503 } : null));
   await page.goto('./#/2026/calendar');
-  await expect(page.getByRole('alert')).toContainText('HTTP 503');
+  await expect(page.getByRole('alert')).toContainText('HTTP 503', { timeout: 20_000 });
   await expect(page.getByRole('navigation', { name: 'Основная навигация' })).toBeVisible();
 });
 
@@ -127,7 +128,7 @@ test('Retry-After is shown when the server exposes it', async ({ page }) => {
       : null,
   );
   await page.goto('./#/2026/drivers');
-  await expect(page.getByRole('alert')).toContainText('3 с');
+  await expect(page.getByRole('alert')).toContainText('3 с', { timeout: 30_000 });
 });
 
 test('driver profile from standings', async ({ page }) => {
@@ -194,7 +195,7 @@ test('chart shows an error instead of a partial picture', async ({ page }) => {
   // Fixtures have one finished round; when it fails nothing is drawn.
   await mockApi(page, (path) => (path === '/2026/1/driverstandings/' ? { status: 500 } : null));
   await page.goto('./#/2026/chart');
-  await expect(page.getByRole('alert')).toContainText('HTTP 500');
+  await expect(page.getByRole('alert')).toContainText('HTTP 500', { timeout: 20_000 });
   await expect(page.locator('.chart__svg')).toHaveCount(0);
 });
 
@@ -254,7 +255,8 @@ test('driver comparison shows careers and seasons side by side', async ({ page }
   await expect(page).toHaveURL(/compare\?a=russell&b=max_verstappen$/);
 
   const wins = page.locator('.cmp-row', { hasText: 'Победы' });
-  await expect(wins.locator('.cmp-cell--a')).toContainText('8');
+  // Two careers: many requests, spaced out for the source's rate limit.
+  await expect(wins.locator('.cmp-cell--a')).toContainText('8', { timeout: 20_000 });
   await expect(wins.locator('.cmp-cell--a')).toHaveClass(/is-lead/);
   // Verstappen won the finished 2025 season in the fixtures.
   await expect(page.locator('.cmp-row', { hasText: 'Титулы' }).locator('.cmp-cell--b')).toContainText('1');
@@ -302,4 +304,37 @@ test('team history loads on request', async ({ page }) => {
   await expect(page.locator('.stat', { hasText: 'Подиумы' })).toContainText('223');
   await page.getByRole('button', { name: /Показать историю/ }).click();
   await expect(page.getByRole('table', { name: /Итоги чемпионатов/ }).locator('tbody tr')).toHaveCount(2);
+});
+
+test('team profile shows career details, badge and all drivers', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./#/2026/constructor/mercedes');
+  await expect(page.locator('.page-header img.team-logo__img')).toHaveAttribute(
+    'src',
+    /logos\/mercedes\.svg$/,
+  );
+  await expect(page.locator('.stat', { hasText: 'Гонки' })).toContainText('330');
+  await expect(page.locator('.stat', { hasText: 'Дубли 1–2' })).toContainText('1');
+  await expect(page.locator('.stat', { hasText: 'Быстрые круги' })).toContainText('101');
+  await expect(page.locator('.win-span')).toContainText('Australian Grand Prix 2014');
+  await expect(page.locator('.win-span')).toContainText('Chinese Grand Prix 2025');
+
+  await page.getByRole('button', { name: 'Показать всех пилотов (2)' }).click();
+  await expect(page.locator('.name-list li')).toHaveCount(2);
+  await page
+    .locator('.name-list')
+    .getByRole('link', { name: /Russell/ })
+    .click();
+  await expect(page).toHaveURL(/#\/2026\/driver\/russell$/);
+});
+
+test('team logos appear in the constructors table', async ({ page }) => {
+  await mockApi(page);
+  await page.goto('./#/2026/constructors');
+  const logos = page.locator('table img.team-logo__img');
+  await expect(logos).toHaveCount(2);
+  // Every logo file is actually served.
+  for (const img of await logos.all()) {
+    await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
+  }
 });
